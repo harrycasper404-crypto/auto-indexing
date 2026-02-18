@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SEO Dashboard</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1a2233;
+      --muted: #647089;
+      --border: #dbe2f0;
+      --accent: #1f5eff;
+      --accent-soft: #e9efff;
+      --ok: #0f9d58;
+      --bad: #dc3545;
+      --warn: #b88300;
+      --shadow: 0 10px 30px rgba(16, 40, 95, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #eef3ff 0%, var(--bg) 240px);
+    }
+
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 32px;
+    }
+
+    .header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 1.5rem;
+      line-height: 1.2;
+    }
+
+    .meta {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .summary-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .summary-card .label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .summary-card .value {
+      display: block;
+      margin-top: 6px;
+      font-weight: 700;
+      font-size: 1.3rem;
+    }
+
+    .controls {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .search input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-soft);
+      border-color: #c4d5ff;
+      color: #0b42ce;
+      font-weight: 600;
+    }
+
+    .panel {
+      margin-top: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .panel.hidden {
+      display: none;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .panel-count {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 720px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 0.9rem;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      background: #fafcff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    a.url-link {
+      color: var(--accent);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    a.url-link:hover {
+      text-decoration: underline;
+    }
+
+    .btn-inspect {
+      display: inline-block;
+      border: 1px solid #c5d6ff;
+      background: var(--accent-soft);
+      color: #0b42ce;
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-ok {
+      color: var(--ok);
+      font-weight: 600;
+    }
+
+    .status-bad {
+      color: var(--bad);
+      font-weight: 600;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .empty {
+      padding: 22px 16px;
+      color: var(--muted);
+    }
+
+    .error-box {
+      margin-top: 16px;
+      border: 1px solid #f0c4cb;
+      background: #fff2f4;
+      color: #a2162d;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .title {
+        font-size: 1.3rem;
+      }
+
+      .panel {
+        border-radius: 12px;
+      }
+
+      table {
+        min-width: 620px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="header">
+      <h1 class="title">TrinityGlobals SEO Dashboard</h1>
+      <p id="metaLine" class="meta">Loading latest SEO data...</p>
+
+      <div id="summaryGrid" class="summary-grid"></div>
+
+      <div class="controls">
+        <div class="search">
+          <input id="searchInput" type="search" placeholder="Filter URLs, status, or keywords..." />
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="top" type="button">Top Priority</button>
+          <button class="tab-btn" data-tab="ok" type="button">OK URLs</button>
+          <button class="tab-btn" data-tab="bad" type="button">BAD URLs</button>
+          <button class="tab-btn" data-tab="skipped" type="button">Skipped Duplicates</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="panelTop" class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Top Priority URLs</h2>
+        <span id="countTop" class="panel-count"></span>
+      </div>
+      <div id="contentTop" class="table-wrap"></div>
+    </section>
+
+    <section id="panelOk" class="panel hidden">
+      <div class="panel-header">
+        <h2 class="panel-title">OK URLs</h2>
+        <span id="countOk" class="panel-count"></span>
+      </div>
+      <div id="contentOk" class="table-wrap"></div>
+    </section>
+
+    <section id="panelBad" class="panel hidden">
+      <div class="panel-header">
+        <h2 class="panel-title">BAD URLs</h2>
+        <span id="countBad" class="panel-count"></span>
+      </div>
+      <div id="contentBad" class="table-wrap"></div>
+    </section>
+
+    <section id="panelSkipped" class="panel hidden">
+      <div class="panel-header">
+        <h2 class="panel-title">Skipped Duplicates</h2>
+        <span id="countSkipped" class="panel-count"></span>
+      </div>
+      <div id="contentSkipped" class="table-wrap"></div>
+    </section>
+
+    <div id="errorBox" class="error-box hidden"></div>
+  </main>
+
+  <script>
+    const state = {
+      data: null,
+      activeTab: "top",
+      query: "",
+    };
+
+    const tabElements = Array.from(document.querySelectorAll(".tab-btn"));
+    const panelMap = {
+      top: document.getElementById("panelTop"),
+      ok: document.getElementById("panelOk"),
+      bad: document.getElementById("panelBad"),
+      skipped: document.getElementById("panelSkipped"),
+    };
+
+    function escapeHtml(input) {
+      return String(input)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function normalizeText(input) {
+      return String(input ?? "").toLowerCase();
+    }
+
+    function withFilter(items, selector) {
+      const query = state.query.trim().toLowerCase();
+      if (!query) {
+        return items;
+      }
+      return items.filter((item) => normalizeText(selector(item)).includes(query));
+    }
+
+    function asArray(value) {
+      return Array.isArray(value) ? value : [];
+    }
+
+    function renderSummary() {
+      const counts = (state.data && state.data.counts) || {};
+      const items = [
+        { label: "Total URLs", value: counts.total_urls || 0 },
+        { label: "Kept URLs", value: counts.kept_urls || 0 },
+        { label: "Skipped", value: counts.skipped_duplicates || 0 },
+        { label: "OK", value: counts.ok_count || 0 },
+        { label: "Bad", value: counts.bad_count || 0 },
+      ];
+
+      const grid = document.getElementById("summaryGrid");
+      grid.innerHTML = items
+        .map(
+          (item) =>
+            '<div class="summary-card">' +
+            `<span class="label">${escapeHtml(item.label)}</span>` +
+            `<span class="value">${escapeHtml(item.value)}</span>` +
+            "</div>",
+        )
+        .join("");
+
+      const generatedAt = state.data && state.data.generated_at ? state.data.generated_at : "N/A";
+      const property = state.data && state.data.property ? state.data.property : "N/A";
+      const sitemaps = asArray(state.data && state.data.sitemaps);
+      const sitemapText = sitemaps.length > 0 ? sitemaps.join(", ") : (state.data && state.data.sitemap) || "N/A";
+      document.getElementById("metaLine").textContent =
+        `Generated: ${generatedAt} | Property: ${property} | Sitemaps: ${sitemapText}`;
+    }
+
+    function renderTopTable() {
+      const rows = withFilter(asArray(state.data && state.data.top_priority), (row) =>
+        [row.url, row.score, row.lastmod, row.tier].join(" "),
+      );
+      document.getElementById("countTop").textContent = `${rows.length} rows`;
+
+      if (rows.length === 0) {
+        document.getElementById("contentTop").innerHTML = '<div class="empty">No rows found.</div>';
+        return;
+      }
+
+      const body = rows
+        .map((row) => {
+          const url = row.url || "";
+          const inspect = row.inspect || "";
+          return (
+            "<tr>" +
+            `<td>${escapeHtml(row.score || 0)}</td>` +
+            `<td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></td>` +
+            `<td>${escapeHtml(row.lastmod || "-")}</td>` +
+            `<td>${inspect ? `<a class="btn-inspect" href="${escapeHtml(inspect)}" target="_blank" rel="noopener noreferrer">Inspect in GSC</a>` : '<span class="muted">N/A</span>'}</td>` +
+            "</tr>"
+          );
+        })
+        .join("");
+
+      document.getElementById("contentTop").innerHTML =
+        "<table>" +
+        "<thead><tr><th>Score</th><th>URL</th><th>Lastmod</th><th>Inspect</th></tr></thead>" +
+        `<tbody>${body}</tbody>` +
+        "</table>";
+    }
+
+    function renderOkTable() {
+      const rows = withFilter(asArray(state.data && state.data.ok), (row) =>
+        [row.url, row.status, row.method, row.final_url].join(" "),
+      );
+      document.getElementById("countOk").textContent = `${rows.length} rows`;
+
+      if (rows.length === 0) {
+        document.getElementById("contentOk").innerHTML = '<div class="empty">No rows found.</div>';
+        return;
+      }
+
+      const body = rows
+        .map((row) => {
+          const url = row.url || "";
+          return (
+            "<tr>" +
+            `<td class="status-ok">${escapeHtml(row.status || "OK")}</td>` +
+            `<td>${escapeHtml(row.method || "-")}</td>` +
+            `<td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></td>` +
+            `<td>${escapeHtml(row.final_url || "-")}</td>` +
+            "</tr>"
+          );
+        })
+        .join("");
+
+      document.getElementById("contentOk").innerHTML =
+        "<table>" +
+        "<thead><tr><th>Status</th><th>Method</th><th>URL</th><th>Final URL</th></tr></thead>" +
+        `<tbody>${body}</tbody>` +
+        "</table>";
+    }
+
+    function renderBadTable() {
+      const rows = withFilter(asArray(state.data && state.data.bad), (row) =>
+        [row.url, row.status, row.method, row.error].join(" "),
+      );
+      document.getElementById("countBad").textContent = `${rows.length} rows`;
+
+      if (rows.length === 0) {
+        document.getElementById("contentBad").innerHTML = '<div class="empty">No rows found.</div>';
+        return;
+      }
+
+      const body = rows
+        .map((row) => {
+          const url = row.url || "";
+          return (
+            "<tr>" +
+            `<td class="status-bad">${escapeHtml(row.status || "ERR")}</td>` +
+            `<td>${escapeHtml(row.method || "-")}</td>` +
+            `<td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></td>` +
+            `<td>${escapeHtml(row.error || "-")}</td>` +
+            "</tr>"
+          );
+        })
+        .join("");
+
+      document.getElementById("contentBad").innerHTML =
+        "<table>" +
+        "<thead><tr><th>Status</th><th>Method</th><th>URL</th><th>Error</th></tr></thead>" +
+        `<tbody>${body}</tbody>` +
+        "</table>";
+    }
+
+    function renderSkippedTable() {
+      const rows = withFilter(asArray(state.data && state.data.skipped_duplicates), (row) =>
+        [row.url, row.lastmod, row.reason].join(" "),
+      );
+      document.getElementById("countSkipped").textContent = `${rows.length} rows`;
+
+      if (rows.length === 0) {
+        document.getElementById("contentSkipped").innerHTML = '<div class="empty">No rows found.</div>';
+        return;
+      }
+
+      const body = rows
+        .map((row) => {
+          const url = row.url || "";
+          return (
+            "<tr>" +
+            `<td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></td>` +
+            `<td>${escapeHtml(row.lastmod || "-")}</td>` +
+            `<td>${escapeHtml(row.reason || "-")}</td>` +
+            "</tr>"
+          );
+        })
+        .join("");
+
+      document.getElementById("contentSkipped").innerHTML =
+        "<table>" +
+        "<thead><tr><th>URL</th><th>Lastmod</th><th>Reason</th></tr></thead>" +
+        `<tbody>${body}</tbody>` +
+        "</table>";
+    }
+
+    function applyActiveTab() {
+      Object.entries(panelMap).forEach(([tab, panel]) => {
+        panel.classList.toggle("hidden", tab !== state.activeTab);
+      });
+
+      tabElements.forEach((button) => {
+        button.classList.toggle("active", button.dataset.tab === state.activeTab);
+      });
+    }
+
+    function renderAll() {
+      if (!state.data) {
+        return;
+      }
+      renderSummary();
+      renderTopTable();
+      renderOkTable();
+      renderBadTable();
+      renderSkippedTable();
+      applyActiveTab();
+    }
+
+    function showError(message) {
+      const box = document.getElementById("errorBox");
+      box.textContent = message;
+      box.classList.remove("hidden");
+    }
+
+    async function loadData() {
+      try {
+        const response = await fetch(`data/latest.json?ts=${Date.now()}`, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Failed to load data (HTTP ${response.status})`);
+        }
+        state.data = await response.json();
+        renderAll();
+      } catch (error) {
+        showError(
+          `Could not load seo/data/latest.json. ${error.message}. If opening as file://, run a local server (example: npx serve .) and open /seo/index.html.`,
+        );
+      }
+    }
+
+    tabElements.forEach((button) => {
+      button.addEventListener("click", () => {
+        state.activeTab = button.dataset.tab;
+        applyActiveTab();
+      });
+    });
+
+    document.getElementById("searchInput").addEventListener("input", (event) => {
+      state.query = event.target.value || "";
+      renderAll();
+    });
+
+    loadData();
+  </script>
+</body>
+</html>

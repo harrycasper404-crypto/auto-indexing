@@ -1,0 +1,699 @@
+{
+  "generated_at": "2026-02-18T23:54:57.871Z",
+  "property": "sc-domain:trinityglobals.com",
+  "sitemap": "https://trinityglobals.com/sitemap.xml",
+  "sitemaps": [
+    "https://trinityglobals.com/sitemap.xml",
+    "https://trinityglobals.com/blog/sitemap.xml/"
+  ],
+  "counts": {
+    "total_urls": 62,
+    "kept_urls": 57,
+    "skipped_duplicates": 5,
+    "ok_count": 48,
+    "bad_count": 2
+  },
+  "top_priority": [
+    {
+      "url": "https://trinityglobals.com/blog/cancel-flight-without-cancellation-fees-usa/",
+      "score": 304,
+      "tier": "highest",
+      "lastmod": "2026-01-29T15:04:21+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcancel-flight-without-cancellation-fees-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cancel-flight-without-fees-usa/",
+      "score": 303,
+      "tier": "highest",
+      "lastmod": "2026-01-19T14:04:03+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcancel-flight-without-fees-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/basic-economy-change-rules-usa/",
+      "score": 302,
+      "tier": "highest",
+      "lastmod": "2026-02-13T22:33:08+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbasic-economy-change-rules-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/cancellation-policy",
+      "score": 302,
+      "tier": "highest",
+      "lastmod": "2026-02-02",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fcancellation-policy"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/refundable-flights-usa/",
+      "score": 302,
+      "tier": "highest",
+      "lastmod": "2026-01-25T13:51:28+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Frefundable-flights-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/delta-change-fee-policy/",
+      "score": 302,
+      "tier": "highest",
+      "lastmod": "2026-01-11T22:41:51+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fdelta-change-fee-policy%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/toronto-to-montreal-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-02-11T22:29:24+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Ftoronto-to-montreal-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/los-angeles-to-new-york-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-02-04T22:56:36+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Flos-angeles-to-new-york-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/new-york-to-dubai-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-30T22:58:09+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fnew-york-to-dubai-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/san-francisco-to-paris-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-26T22:50:24+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fsan-francisco-to-paris-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/toronto-to-london-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-24T13:48:49+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Ftoronto-to-london-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/seattle-to-denver-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-23T22:42:52+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fseattle-to-denver-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/vancouver-to-hong-kong-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-22T14:20:00+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fvancouver-to-hong-kong-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/toronto-to-london-flights-guide/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-18T13:46:14+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Ftoronto-to-london-flights-guide%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/us-to-uk-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-17T13:44:55+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fus-to-uk-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/dallas-to-orlando-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-16T13:58:42+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fdallas-to-orlando-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/new-york-to-london-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-15T22:47:01+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fnew-york-to-london-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/toronto-to-vancouver-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-15T14:00:52+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Ftoronto-to-vancouver-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/new-york-to-los-angeles-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-14T22:49:51+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fnew-york-to-los-angeles-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/vancouver-to-calgary-flights/",
+      "score": 202,
+      "tier": "medium",
+      "lastmod": "2026-01-14T14:01:04+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fvancouver-to-calgary-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/us-to-mexico-flights/",
+      "score": 201,
+      "tier": "medium",
+      "lastmod": "2026-02-17T22:31:21+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fus-to-mexico-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/us-to-uae-flights/",
+      "score": 201,
+      "tier": "medium",
+      "lastmod": "2026-02-14T13:39:30+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fus-to-uae-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-flights-usa-europe/",
+      "score": 201,
+      "tier": "medium",
+      "lastmod": "2026-02-03T15:36:03+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcheap-flights-usa-europe%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/book-flights-to-europe-from-usa/",
+      "score": 201,
+      "tier": "medium",
+      "lastmod": "2026-02-02T05:03:49+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbook-flights-to-europe-from-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/us-to-africa-flights-guide/",
+      "score": 201,
+      "tier": "medium",
+      "lastmod": "2026-01-28T14:19:15+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fus-to-africa-flights-guide%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/miami-to-bogota-flights/",
+      "score": 201,
+      "tier": "medium",
+      "lastmod": "2026-01-17T22:41:07+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fmiami-to-bogota-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/us-to-africa-flights/",
+      "score": 201,
+      "tier": "medium",
+      "lastmod": "2026-01-11T09:37:46+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fus-to-africa-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/usa-to-canada-flight-price-comparison/",
+      "score": 201,
+      "tier": "medium",
+      "lastmod": "2026-01-10T05:23:30+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fusa-to-canada-flight-price-comparison%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/book-international-flights-from-usa/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-02-18T22:32:30+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbook-international-flights-from-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/book-domestic-flights-usa/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-02-08T14:05:16+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbook-domestic-flights-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-nonstop-flights-usa/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-02-02T23:16:02+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcheap-nonstop-flights-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/how-to-book-cheap-flights-canada/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-01-30T14:58:54+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fhow-to-book-cheap-flights-canada%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/best-flight-deals-canada/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-01-29T22:58:47+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbest-flight-deals-canada%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-international-flights-usa/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-01-22T22:51:28+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcheap-international-flights-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-domestic-flights-usa/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-01-21T22:56:41+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcheap-domestic-flights-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/best-flight-deals-usa/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-01-19T22:47:08+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbest-flight-deals-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/best-day-to-book-flights-usa/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-01-18T22:41:53+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbest-day-to-book-flights-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/flight-booking-canada/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-01-13T22:49:10+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fflight-booking-canada%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-nonstop-flights-canada/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-01-12T22:41:34+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcheap-nonstop-flights-canada%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/best-time-to-book-flights-canada/",
+      "score": 102,
+      "tier": "normal",
+      "lastmod": "2026-01-12T14:02:05+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbest-time-to-book-flights-canada%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/discount-airfare-usa/",
+      "score": 101,
+      "tier": "normal",
+      "lastmod": "2026-02-16T14:01:28+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fdiscount-airfare-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/canada-domestic-flights/",
+      "score": 101,
+      "tier": "normal",
+      "lastmod": "2026-02-09T23:55:34+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcanada-domestic-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-flights-canada/",
+      "score": 101,
+      "tier": "normal",
+      "lastmod": "2026-01-31T14:00:39+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcheap-flights-canada%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-flights-usa/",
+      "score": 101,
+      "tier": "normal",
+      "lastmod": "2026-01-27T22:47:49+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcheap-flights-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/discount-airfare-canada/",
+      "score": 101,
+      "tier": "normal",
+      "lastmod": "2026-01-27T14:19:40+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fdiscount-airfare-canada%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/book-flights-canada/",
+      "score": 101,
+      "tier": "normal",
+      "lastmod": "2026-01-26T14:03:29+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbook-flights-canada%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/flights-from-usa-to-popular-international-destinations/",
+      "score": 101,
+      "tier": "normal",
+      "lastmod": "2026-01-20T14:07:16+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fflights-from-usa-to-popular-international-destinations%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/",
+      "score": 0,
+      "tier": "none",
+      "lastmod": "2026-02-18T23:12:30+00:00",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/",
+      "score": 0,
+      "tier": "none",
+      "lastmod": "2026-02-02",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/about-us",
+      "score": 0,
+      "tier": "none",
+      "lastmod": "2026-02-02",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fabout-us"
+    }
+  ],
+  "ok": [
+    {
+      "url": "https://trinityglobals.com/blog/cancel-flight-without-cancellation-fees-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/cancel-flight-without-cancellation-fees-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cancel-flight-without-fees-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/cancel-flight-without-fees-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/basic-economy-change-rules-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/basic-economy-change-rules-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/refundable-flights-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/refundable-flights-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/delta-change-fee-policy/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/delta-change-fee-policy/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/toronto-to-montreal-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/toronto-to-montreal-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/los-angeles-to-new-york-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/los-angeles-to-new-york-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/new-york-to-dubai-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/new-york-to-dubai-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/san-francisco-to-paris-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/san-francisco-to-paris-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/toronto-to-london-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/toronto-to-london-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/seattle-to-denver-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/seattle-to-denver-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/vancouver-to-hong-kong-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/vancouver-to-hong-kong-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/toronto-to-london-flights-guide/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/toronto-to-london-flights-guide/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/us-to-uk-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/us-to-uk-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/dallas-to-orlando-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/dallas-to-orlando-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/new-york-to-london-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/new-york-to-london-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/toronto-to-vancouver-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/toronto-to-vancouver-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/new-york-to-los-angeles-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/new-york-to-los-angeles-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/vancouver-to-calgary-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/vancouver-to-calgary-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/us-to-mexico-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/us-to-mexico-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/us-to-uae-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/us-to-uae-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-flights-usa-europe/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/cheap-flights-usa-europe/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/book-flights-to-europe-from-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/book-flights-to-europe-from-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/us-to-africa-flights-guide/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/us-to-africa-flights-guide/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/miami-to-bogota-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/miami-to-bogota-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/us-to-africa-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/us-to-africa-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/usa-to-canada-flight-price-comparison/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/usa-to-canada-flight-price-comparison/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/book-international-flights-from-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/book-international-flights-from-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/book-domestic-flights-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/book-domestic-flights-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-nonstop-flights-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/cheap-nonstop-flights-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/how-to-book-cheap-flights-canada/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/how-to-book-cheap-flights-canada/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/best-flight-deals-canada/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/best-flight-deals-canada/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-international-flights-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/cheap-international-flights-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-domestic-flights-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/cheap-domestic-flights-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/best-flight-deals-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/best-flight-deals-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/best-day-to-book-flights-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/best-day-to-book-flights-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/flight-booking-canada/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/flight-booking-canada/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-nonstop-flights-canada/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/cheap-nonstop-flights-canada/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/best-time-to-book-flights-canada/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/best-time-to-book-flights-canada/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/discount-airfare-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/discount-airfare-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/canada-domestic-flights/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/canada-domestic-flights/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-flights-canada/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/cheap-flights-canada/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-flights-usa/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/cheap-flights-usa/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/discount-airfare-canada/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/discount-airfare-canada/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/book-flights-canada/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/book-flights-canada/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/flights-from-usa-to-popular-international-destinations/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/flights-from-usa-to-popular-international-destinations/"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/blog/"
+    },
+    {
+      "url": "https://trinityglobals.com/",
+      "status": "200",
+      "method": "HEAD",
+      "final_url": "https://trinityglobals.com/"
+    }
+  ],
+  "bad": [
+    {
+      "url": "https://trinityglobals.com/cancellation-policy",
+      "status": "404",
+      "method": "HEAD",
+      "error": ""
+    },
+    {
+      "url": "https://trinityglobals.com/about-us",
+      "status": "404",
+      "method": "HEAD",
+      "error": ""
+    }
+  ],
+  "skipped_duplicates": [
+    {
+      "url": "https://trinityglobals.com/blog/us-to-africa-flights-2/",
+      "lastmod": "2026-02-18T14:03:37+00:00",
+      "reason": "Numeric slug suffix (-<number>)"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/toronto-to-montreal-flights-2/",
+      "lastmod": "2026-02-17T14:02:40+00:00",
+      "reason": "Numeric slug suffix (-<number>)"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/refundable-flights-usa-5/",
+      "lastmod": "2026-02-16T22:28:22+00:00",
+      "reason": "Numeric slug suffix (-<number>)"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/cheap-flights-usa-2/",
+      "lastmod": "2026-02-15T22:24:05+00:00",
+      "reason": "Numeric slug suffix (-<number>)"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/canada-to-usa-flights-3/",
+      "lastmod": "2026-02-15T13:40:05+00:00",
+      "reason": "Numeric slug suffix (-<number>)"
+    }
+  ]
+}

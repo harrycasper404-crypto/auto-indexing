@@ -5,6 +5,9 @@ on:
     - cron: "17 5 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   run-indexing-booster:
     runs-on: ubuntu-latest
@@ -19,6 +22,21 @@ jobs:
 
       - name: Run indexing booster
         run: node scripts/indexing-booster.js --sitemap https://trinityglobals.com/sitemap.xml --sitemap https://trinityglobals.com/blog/sitemap.xml/ --property sc-domain:trinityglobals.com --top 50
+
+      - name: Generate SEO dashboard JSON
+        run: node scripts/generate-seo-json.js --sitemap https://trinityglobals.com/sitemap.xml --sitemap https://trinityglobals.com/blog/sitemap.xml/ --property sc-domain:trinityglobals.com
+
+      - name: Commit dashboard data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add seo/data/latest.json
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+            exit 0
+          fi
+          git commit -m "Update SEO dashboard data [skip ci]"
+          git push origin HEAD:${{ github.ref_name }}
 
       - name: Upload indexing booster artifacts
         uses: actions/upload-artifact@v4

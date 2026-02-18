@@ -1,0 +1,39 @@
+# SEO Dashboard
+
+## What It Is
+- A static UI at `seo/index.html` that reads `seo/data/latest.json`.
+- It shows:
+  - summary counts
+  - top priority URLs
+  - OK URLs
+  - BAD URLs
+  - skipped duplicate URLs
+- Includes keyword search and tabbed sections for quick review.
+
+## How Data Updates
+- GitHub Actions workflow `Indexing Booster` runs daily (and on manual run).
+- It runs:
+  1. `scripts/indexing-booster.js`
+  2. `scripts/generate-seo-json.js`
+- Then it commits and pushes updated `seo/data/latest.json` back to the repo using `GITHUB_TOKEN`.
+
+## View The Dashboard
+1. Open `seo/index.html`.
+2. The page loads data from `seo/data/latest.json`.
+3. Use tabs and search to inspect URLs.
+
+If direct `file://` load blocks JSON fetch, run a local static server and open `/seo/index.html`.
+
+## Local Run
+```bash
+node scripts/indexing-booster.js \
+  --sitemap https://trinityglobals.com/sitemap.xml \
+  --sitemap https://trinityglobals.com/blog/sitemap.xml/ \
+  --property sc-domain:trinityglobals.com \
+  --top 50
+
+node scripts/generate-seo-json.js \
+  --sitemap https://trinityglobals.com/sitemap.xml \
+  --sitemap https://trinityglobals.com/blog/sitemap.xml/ \
+  --property sc-domain:trinityglobals.com
+```
