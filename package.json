@@ -1,0 +1,37 @@
+{
+  "name": "grotrip-react-javascript",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/prerender.mjs",
+    "indexing:booster": "node scripts/indexing-booster.js --sitemap https://trinityglobals.com/sitemap.xml --property sc-domain:trinityglobals.com --top 50",
+    "lint": "eslint .",
+    "proxy:airports": "node scripts/aerodatabox-proxy.mjs",
+    "preview": "vite preview",
+    "prerender": "node scripts/prerender.mjs"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.8",
+    "firebase": "^12.7.0",
+    "react": "^19.1.1",
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "^19.1.1",
+    "react-flatpickr": "^4.0.11",
+    "react-router-dom": "^7.9.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.4",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "globals": "^16.4.0",
+    "puppeteer": "^22.12.1",
+    "sass-embedded": "^1.93.3",
+    "vite": "^7.1.7"
+  }
+}

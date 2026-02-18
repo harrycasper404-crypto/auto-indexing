@@ -1,0 +1,35 @@
+name: Indexing Booster
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  run-indexing-booster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Run indexing booster
+        run: node scripts/indexing-booster.js --sitemap https://trinityglobals.com/sitemap.xml --property sc-domain:trinityglobals.com --top 50
+
+      - name: Upload indexing booster artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: indexing-booster-output
+          if-no-files-found: error
+          path: |
+            urls_all.txt
+            urls_skipped_duplicates.txt
+            urls_priority_sorted.txt
+            urls_priority_top50.txt
+            urls_ok.txt
+            urls_bad.txt
+            inspect_links_priority_top50.txt
