@@ -1,54 +1,48 @@
-# TrinityGlobals Auto Indexing Booster
+# TrinityGlobals Indexing Booster
 
-## What It Does
-- Fetches one or more sitemap URLs (supports both `urlset` and `sitemapindex`).
-- Extracts page URLs and `lastmod`.
-- Skips numeric duplicate slugs where a base slug exists (example: `some-page-2` when `some-page` exists).
-- Scores and sorts URLs by indexing priority:
-  - Highest intent terms: `cancel`, `refund`, `refundable`, `change`, `modify`, `reschedule`, `rebook`, `basic-economy`, `fees`
-  - Medium route/destination terms: `routes`, `destinations`, `us-to-uk`, `london`, `dubai`, `uae`, `mexico`, `africa`, `europe`, `paris`, `hong-kong`
-  - Normal commercial terms: `cheap`, `best`, `deals`, `discount`, `book`, `domestic`, `international`, `nonstop`, `price-comparison`
-- Pings Google and Bing with each input sitemap URL.
-- Validates the top N URLs by HTTP status (2xx/3xx = ok).
-- Produces output text files for review and manual indexing workflow.
+## What This Automation Does
+- Fetches sitemap XML (`https://trinityglobals.com/sitemap.xml` by default in workflow).
+- Parses all `<url>` entries and extracts `loc` and `lastmod` (if present).
+- Skips numeric duplicate slugs ending with `-<number>` (for example `.../cheap-flights-usa-2/`).
+- Scores and sorts URLs by priority:
+  - Highest: cancel/cancellation/refundable/refund/change/modify/reschedule/rebook/basic-economy/fee(s)
+  - Medium: route and destination patterns (uk, paris, dubai, uae, mexico, africa, europe, hong-kong, toronto, etc.)
+  - Normal: cheap/best/deals/discount/book/booking/domestic/international/nonstop/price-comparison
+- Checks HTTP status for top N URLs (default 50) with concurrency limit 10.
+- Generates output files:
+  - `urls_all.txt`
+  - `urls_skipped_duplicates.txt`
+  - `urls_priority_sorted.txt`
+  - `urls_priority_top50.txt`
+  - `urls_ok.txt`
+  - `urls_bad.txt`
+  - `inspect_links_priority_top50.txt`
 
 ## What It Does Not Do
-- It does **not** call an official Google API to force indexing requests for arbitrary pages.
-- Google does not offer a generic public "request indexing for any URL" API for normal websites.
-- The script prepares high-priority inspect links so you can do controlled manual requests in Search Console.
-- Note: Google/Bing legacy sitemap ping endpoints can return `404/410` even when sitemap URLs are valid, because those endpoints are deprecated/retired.
+- It does not call an official API to auto-submit generic blog/article URLs for indexing.
+- For normal websites, there is no public "request indexing for any URL" API.
 
-## Local Run
+## Run Locally
 ```bash
 node scripts/indexing-booster.js \
   --sitemap https://trinityglobals.com/sitemap.xml \
-  --sitemap https://trinityglobals.com/blog/sitemap.xml/ \
   --property sc-domain:trinityglobals.com \
   --top 50
 ```
 
-If `package.json` includes the npm script:
+Or:
 ```bash
 npm run indexing:booster
 ```
 
-## Output Files
-- `urls_all.txt`
-- `urls_skipped_duplicates.txt`
-- `urls_priority_sorted.txt`
-- `urls_priority_top50.txt`
-- `urls_ok.txt`
-- `urls_bad.txt`
-- `inspect_links_priority_top50.txt`
-
 ## GitHub Actions Artifacts
-1. Open the repository on GitHub.
-2. Go to `Actions` -> `Indexing Booster`.
-3. Open a run (scheduled or manually triggered).
-4. Download artifact: `indexing-booster-output`.
+1. Open repository on GitHub.
+2. Click `Actions`.
+3. Click workflow `Indexing Booster`.
+4. Open a run and download artifact `indexing-booster-output`.
 
-## How To Use `inspect_links_priority_top50.txt`
-1. Open the file and take the top 10 links for the day.
-2. Open each inspect URL in a browser logged into Search Console.
-3. For each URL, click **Request indexing** manually.
-4. Repeat daily from the next batch.
+## Daily Routine
+1. Open `inspect_links_priority_top50.txt` from artifact.
+2. Open top 5 to 10 inspect links in Search Console.
+3. Use `Request indexing` manually for those URLs.
+4. Repeat daily with the next batch.

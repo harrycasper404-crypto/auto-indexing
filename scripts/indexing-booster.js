@@ -7,33 +7,47 @@ const DEFAULT_PROPERTY = "sc-domain:trinityglobals.com";
 const DEFAULT_TOP = 50;
 const FETCH_TIMEOUT_MS = 15000;
 const MAX_CONCURRENCY = 10;
-const MAX_SITEMAPS_TO_FETCH = 5000;
+const MAX_SITEMAPS_TO_FETCH = 2000;
 
 const HIGH_PRIORITY_TERMS = [
   "cancel",
-  "refund",
+  "cancellation",
   "refundable",
+  "refund",
   "change",
   "modify",
   "reschedule",
   "rebook",
   "basic-economy",
   "fees",
+  "fee",
 ];
 
 const MEDIUM_PRIORITY_TERMS = [
-  "routes",
-  "destinations",
   "us-to-uk",
+  "usa-to-uk",
   "london",
+  "uk",
+  "paris",
+  "france",
   "dubai",
   "uae",
   "mexico",
   "africa",
   "europe",
-  "paris",
   "hong-kong",
-  "hongkong",
+  "vancouver",
+  "toronto",
+  "montreal",
+  "calgary",
+  "bogota",
+  "orlando",
+  "denver",
+  "new-york",
+  "los-angeles",
+  "san-francisco",
+  "seattle",
+  "dallas",
 ];
 
 const NORMAL_PRIORITY_TERMS = [
@@ -42,6 +56,7 @@ const NORMAL_PRIORITY_TERMS = [
   "deals",
   "discount",
   "book",
+  "booking",
   "domestic",
   "international",
   "nonstop",
@@ -59,19 +74,18 @@ const OUTPUT_FILES = {
 };
 
 function usage() {
-  const script = "node scripts/indexing-booster.js";
   return [
     "Usage:",
-    `  ${script} --sitemap <sitemap-url> [--sitemap <sitemap-url> ...] [--property <gsc-property>] [--top <N>]`,
+    "  node scripts/indexing-booster.js --sitemap <url> [--property <gsc-property>] [--top <N>]",
     "",
     "Example:",
-    `  ${script} --sitemap https://trinityglobals.com/sitemap.xml --sitemap https://trinityglobals.com/blog/sitemap.xml/ --property ${DEFAULT_PROPERTY} --top 50`,
+    "  node scripts/indexing-booster.js --sitemap https://trinityglobals.com/sitemap.xml --property sc-domain:trinityglobals.com --top 50",
   ].join("\n");
 }
 
 function parseArgs(argv) {
   const args = {
-    sitemaps: [],
+    sitemap: "",
     property: DEFAULT_PROPERTY,
     top: DEFAULT_TOP,
   };
@@ -80,11 +94,19 @@ function parseArgs(argv) {
     const key = argv[i];
     const value = argv[i + 1];
 
+    if (key === "--help" || key === "-h") {
+      console.log(usage());
+      process.exit(0);
+    }
+
     if (key === "--sitemap") {
       if (!value) {
         throw new Error("Missing value for --sitemap");
       }
-      args.sitemaps.push(value.trim());
+      if (args.sitemap) {
+        throw new Error("--sitemap can be provided only once");
+      }
+      args.sitemap = value.trim();
       i += 1;
       continue;
     }
@@ -102,33 +124,26 @@ function parseArgs(argv) {
       if (!value) {
         throw new Error("Missing value for --top");
       }
-      const parsedTop = Number.parseInt(value, 10);
-      if (!Number.isInteger(parsedTop) || parsedTop <= 0) {
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isInteger(parsed) || parsed <= 0) {
         throw new Error("--top must be a positive integer");
       }
-      args.top = parsedTop;
+      args.top = parsed;
       i += 1;
       continue;
-    }
-
-    if (key === "--help" || key === "-h") {
-      console.log(usage());
-      process.exit(0);
     }
 
     throw new Error(`Unknown argument: ${key}`);
   }
 
-  if (args.sitemaps.length === 0) {
-    throw new Error("At least one --sitemap is required");
+  if (!args.sitemap) {
+    throw new Error("--sitemap is required");
   }
 
-  for (const sitemap of args.sitemaps) {
-    try {
-      new URL(sitemap);
-    } catch {
-      throw new Error(`Invalid --sitemap URL: ${sitemap}`);
-    }
+  try {
+    new URL(args.sitemap);
+  } catch {
+    throw new Error("Invalid --sitemap URL");
   }
 
   return args;
@@ -160,42 +175,38 @@ function extractTagValue(block, tagName) {
 }
 
 function parseSitemapXml(xmlText) {
-  const trimmed = xmlText.replace(/^\uFEFF/, "");
-  const isIndex = /<sitemapindex\b/i.test(trimmed);
-  const isUrlset = /<urlset\b/i.test(trimmed);
+  const text = xmlText.replace(/^\uFEFF/, "");
+  const isIndex = /<sitemapindex\b/i.test(text);
+  const isUrlset = /<urlset\b/i.test(text);
 
   if (isIndex) {
-    const sitemaps = [];
+    const entries = [];
     const regex = /<sitemap\b[^>]*>([\s\S]*?)<\/sitemap>/gi;
-    let match = regex.exec(trimmed);
-
+    let match = regex.exec(text);
     while (match) {
       const loc = extractTagValue(match[1], "loc");
       const lastmod = extractTagValue(match[1], "lastmod");
       if (loc) {
-        sitemaps.push({ loc, lastmod });
+        entries.push({ loc, lastmod });
       }
-      match = regex.exec(trimmed);
+      match = regex.exec(text);
     }
-
-    return { type: "sitemapindex", entries: sitemaps };
+    return { type: "sitemapindex", entries };
   }
 
   if (isUrlset) {
-    const urls = [];
+    const entries = [];
     const regex = /<url\b[^>]*>([\s\S]*?)<\/url>/gi;
-    let match = regex.exec(trimmed);
-
+    let match = regex.exec(text);
     while (match) {
       const loc = extractTagValue(match[1], "loc");
       const lastmod = extractTagValue(match[1], "lastmod");
       if (loc) {
-        urls.push({ loc, lastmod });
+        entries.push({ loc, lastmod });
       }
-      match = regex.exec(trimmed);
+      match = regex.exec(text);
     }
-
-    return { type: "urlset", entries: urls };
+    return { type: "urlset", entries };
   }
 
   return { type: "unknown", entries: [] };
@@ -203,7 +214,7 @@ function parseSitemapXml(xmlText) {
 
 function normalizeAbsoluteUrl(input) {
   try {
-    const url = new URL(input.trim());
+    const url = new URL(String(input).trim());
     url.hash = "";
     url.hostname = url.hostname.toLowerCase();
     return url.toString();
@@ -220,13 +231,13 @@ function safeDateMillis(lastmod) {
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
-function getTextFromResponseBuffer(buffer, sourceUrl, contentEncoding) {
+function decodeResponseBuffer(buffer, sourceUrl, contentEncoding) {
   const encoding = String(contentEncoding || "").toLowerCase();
-  const looksGzip = encoding.includes("gzip") || sourceUrl.toLowerCase().endsWith(".gz");
-  const looksDeflate = encoding.includes("deflate");
-  const looksBr = encoding.includes("br");
+  const isGzip = encoding.includes("gzip") || sourceUrl.toLowerCase().endsWith(".gz");
+  const isDeflate = encoding.includes("deflate");
+  const isBrotli = encoding.includes("br");
 
-  if (looksGzip) {
+  if (isGzip) {
     try {
       return zlib.gunzipSync(buffer).toString("utf8");
     } catch {
@@ -234,7 +245,7 @@ function getTextFromResponseBuffer(buffer, sourceUrl, contentEncoding) {
     }
   }
 
-  if (looksDeflate) {
+  if (isDeflate) {
     try {
       return zlib.inflateSync(buffer).toString("utf8");
     } catch {
@@ -242,7 +253,7 @@ function getTextFromResponseBuffer(buffer, sourceUrl, contentEncoding) {
     }
   }
 
-  if (looksBr) {
+  if (isBrotli) {
     try {
       return zlib.brotliDecompressSync(buffer).toString("utf8");
     } catch {
@@ -273,26 +284,26 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = FETCH_TIMEOUT_MS) {
 }
 
 async function fetchText(url) {
-  const res = await fetchWithTimeout(url, {}, FETCH_TIMEOUT_MS);
+  const res = await fetchWithTimeout(url);
   if (!res.ok) {
     throw new Error(`HTTP ${res.status} while fetching ${url}`);
   }
   const body = Buffer.from(await res.arrayBuffer());
-  return getTextFromResponseBuffer(body, url, res.headers.get("content-encoding"));
+  return decodeResponseBuffer(body, url, res.headers.get("content-encoding"));
 }
 
 async function asyncPool(limit, items, task) {
   const results = new Array(items.length);
-  const executing = new Set();
+  const running = new Set();
 
   for (let i = 0; i < items.length; i += 1) {
     const promise = Promise.resolve().then(() => task(items[i], i));
     results[i] = promise;
-    executing.add(promise);
-    promise.finally(() => executing.delete(promise));
+    running.add(promise);
+    promise.finally(() => running.delete(promise));
 
-    if (executing.size >= limit) {
-      await Promise.race(executing);
+    if (running.size >= limit) {
+      await Promise.race(running);
     }
   }
 
@@ -300,33 +311,30 @@ async function asyncPool(limit, items, task) {
 }
 
 async function crawlSitemaps(rootSitemapUrl) {
-  const sitemapQueue = [normalizeAbsoluteUrl(rootSitemapUrl)];
+  const queue = [normalizeAbsoluteUrl(rootSitemapUrl)];
   const seenSitemaps = new Set();
+  const urlEntries = [];
   const errors = [];
-  const collected = [];
 
-  while (sitemapQueue.length > 0 && seenSitemaps.size < MAX_SITEMAPS_TO_FETCH) {
-    const batch = sitemapQueue.splice(0, MAX_CONCURRENCY).filter(Boolean);
+  while (queue.length > 0 && seenSitemaps.size < MAX_SITEMAPS_TO_FETCH) {
+    const batch = queue.splice(0, MAX_CONCURRENCY).filter(Boolean);
     if (batch.length === 0) {
       break;
     }
 
     const results = await asyncPool(MAX_CONCURRENCY, batch, async (sitemapUrl) => {
       if (seenSitemaps.has(sitemapUrl)) {
-        return { sitemapUrl, type: "seen", entries: [] };
+        return { type: "seen", sitemapUrl };
       }
-
       seenSitemaps.add(sitemapUrl);
 
       try {
         const xml = await fetchText(sitemapUrl);
-        const parsed = parseSitemapXml(xml);
-        return { sitemapUrl, ...parsed };
+        return { sitemapUrl, ...parseSitemapXml(xml) };
       } catch (error) {
         return {
-          sitemapUrl,
           type: "error",
-          entries: [],
+          sitemapUrl,
           error: error instanceof Error ? error.message : String(error),
         };
       }
@@ -339,37 +347,39 @@ async function crawlSitemaps(rootSitemapUrl) {
       }
 
       if (result.type === "sitemapindex") {
-        for (const entry of result.entries) {
-          const normalized = normalizeAbsoluteUrl(entry.loc);
-          if (normalized && !seenSitemaps.has(normalized)) {
-            sitemapQueue.push(normalized);
+        for (const item of result.entries) {
+          const nested = normalizeAbsoluteUrl(item.loc);
+          if (nested && !seenSitemaps.has(nested)) {
+            queue.push(nested);
           }
         }
         continue;
       }
 
       if (result.type === "urlset") {
-        for (const entry of result.entries) {
-          const normalized = normalizeAbsoluteUrl(entry.loc);
-          if (normalized) {
-            collected.push({ url: normalized, lastmod: entry.lastmod || "" });
+        for (const item of result.entries) {
+          const loc = normalizeAbsoluteUrl(item.loc);
+          if (loc) {
+            urlEntries.push({ url: loc, lastmod: item.lastmod || "" });
           }
         }
         continue;
       }
 
-      errors.push(`${result.sitemapUrl}\tUnsupported XML structure`);
+      if (result.type !== "seen") {
+        errors.push(`${result.sitemapUrl}\tUnsupported XML structure`);
+      }
     }
   }
 
-  if (seenSitemaps.size >= MAX_SITEMAPS_TO_FETCH && sitemapQueue.length > 0) {
-    errors.push(`Stopped after ${MAX_SITEMAPS_TO_FETCH} sitemap files (safety limit)`);
+  if (seenSitemaps.size >= MAX_SITEMAPS_TO_FETCH && queue.length > 0) {
+    errors.push(`Stopped at safety limit (${MAX_SITEMAPS_TO_FETCH} sitemap files)`);
   }
 
   return {
-    rawUrls: collected,
-    sitemapCount: seenSitemaps.size,
-    fetchErrors: errors,
+    urls: urlEntries,
+    fetchedSitemaps: seenSitemaps.size,
+    errors,
   };
 }
 
@@ -377,67 +387,43 @@ function dedupeByLatestLastmod(entries) {
   const map = new Map();
 
   for (const entry of entries) {
-    const current = map.get(entry.url);
-    if (!current) {
-      map.set(entry.url, { ...entry });
+    const existing = map.get(entry.url);
+    if (!existing) {
+      map.set(entry.url, entry);
       continue;
     }
 
-    const currentTime = safeDateMillis(current.lastmod);
-    const nextTime = safeDateMillis(entry.lastmod);
-
-    if (nextTime > currentTime) {
-      map.set(entry.url, { ...entry });
+    if (safeDateMillis(entry.lastmod) > safeDateMillis(existing.lastmod)) {
+      map.set(entry.url, entry);
     }
   }
 
   return [...map.values()];
 }
 
-function normalizePathKey(urlString) {
-  const url = new URL(urlString);
-  const cleanPath =
-    url.pathname.length > 1 && url.pathname.endsWith("/")
-      ? url.pathname.slice(0, -1)
-      : url.pathname;
-  return `${url.origin}${cleanPath}`;
-}
-
-function getNumericSuffixDuplicateBase(urlString) {
-  const url = new URL(urlString);
-  const segments = url.pathname.split("/").filter(Boolean);
-  if (segments.length === 0) {
-    return "";
+function hasNumericSuffixSlug(urlString) {
+  try {
+    const url = new URL(urlString);
+    const segments = url.pathname.split("/").filter(Boolean);
+    if (segments.length === 0) {
+      return false;
+    }
+    const lastSegment = segments[segments.length - 1].toLowerCase();
+    return /-\d+$/.test(lastSegment);
+  } catch {
+    return false;
   }
-
-  const last = segments[segments.length - 1];
-  const match = last.match(/^(.*)-(\d{1,3})$/);
-  if (!match) {
-    return "";
-  }
-
-  const suffix = Number.parseInt(match[2], 10);
-  if (!Number.isInteger(suffix) || suffix < 2) {
-    return "";
-  }
-
-  const baseSegments = [...segments];
-  baseSegments[baseSegments.length - 1] = match[1];
-  url.pathname = `/${baseSegments.join("/")}${url.pathname.endsWith("/") ? "/" : ""}`;
-  return normalizePathKey(url.toString());
 }
 
 function splitDuplicateSuffixUrls(entries) {
-  const pathKeySet = new Set(entries.map((entry) => normalizePathKey(entry.url)));
   const kept = [];
   const skipped = [];
 
   for (const entry of entries) {
-    const basePathKey = getNumericSuffixDuplicateBase(entry.url);
-    if (basePathKey && pathKeySet.has(basePathKey)) {
+    if (hasNumericSuffixSlug(entry.url)) {
       skipped.push({
         ...entry,
-        reason: "Numeric suffix duplicate",
+        reason: "Numeric slug suffix (-<number>)",
       });
       continue;
     }
@@ -447,30 +433,33 @@ function splitDuplicateSuffixUrls(entries) {
   return { kept, skipped };
 }
 
-function computePriority(url) {
-  let lower = url.toLowerCase();
+function safeLowerDecoded(url) {
   try {
-    lower = decodeURIComponent(url).toLowerCase();
+    return decodeURIComponent(url).toLowerCase();
   } catch {
-    lower = url.toLowerCase();
+    return String(url).toLowerCase();
   }
+}
 
-  const highHits = HIGH_PRIORITY_TERMS.filter((term) => lower.includes(term));
+function computePriority(url) {
+  const value = safeLowerDecoded(url);
+
+  const highHits = HIGH_PRIORITY_TERMS.filter((term) => value.includes(term));
   if (highHits.length > 0) {
-    return { tier: "highest", score: 300 + highHits.length, terms: highHits };
+    return { tier: "highest", score: 300 + highHits.length };
   }
 
-  const mediumHits = MEDIUM_PRIORITY_TERMS.filter((term) => lower.includes(term));
+  const mediumHits = MEDIUM_PRIORITY_TERMS.filter((term) => value.includes(term));
   if (mediumHits.length > 0) {
-    return { tier: "medium", score: 200 + mediumHits.length, terms: mediumHits };
+    return { tier: "medium", score: 200 + mediumHits.length };
   }
 
-  const normalHits = NORMAL_PRIORITY_TERMS.filter((term) => lower.includes(term));
+  const normalHits = NORMAL_PRIORITY_TERMS.filter((term) => value.includes(term));
   if (normalHits.length > 0) {
-    return { tier: "normal", score: 100 + normalHits.length, terms: normalHits };
+    return { tier: "normal", score: 100 + normalHits.length };
   }
 
-  return { tier: "none", score: 0, terms: [] };
+  return { tier: "none", score: 0 };
 }
 
 function sortByPriority(entries) {
@@ -493,33 +482,29 @@ function sortByPriority(entries) {
 
 async function checkUrlReachability(url) {
   const attempt = async (method) => {
-    const res = await fetchWithTimeout(url, { method }, FETCH_TIMEOUT_MS);
+    const res = await fetchWithTimeout(url, { method });
     return {
+      status: res.status,
       method,
       ok: res.status >= 200 && res.status < 400,
-      status: res.status,
       finalUrl: res.url || url,
     };
   };
 
   try {
-    const headResult = await attempt("HEAD");
-    if (
-      headResult.status === 405 ||
-      headResult.status === 501 ||
-      headResult.status === 403
-    ) {
+    const head = await attempt("HEAD");
+    if ([403, 405, 501].includes(head.status)) {
       return await attempt("GET");
     }
-    return headResult;
+    return head;
   } catch {
     try {
       return await attempt("GET");
     } catch (error) {
       return {
+        status: -1,
         method: "GET",
         ok: false,
-        status: -1,
         finalUrl: url,
         error: error instanceof Error ? error.message : String(error),
       };
@@ -527,221 +512,128 @@ async function checkUrlReachability(url) {
   }
 }
 
-async function pingSearchEngine(name, endpoint) {
-  try {
-    const res = await fetchWithTimeout(endpoint, { method: "GET" }, FETCH_TIMEOUT_MS);
-    return {
-      name,
-      endpoint,
-      status: res.status,
-      ok: res.status >= 200 && res.status < 400,
-    };
-  } catch (error) {
-    return {
-      name,
-      endpoint,
-      status: -1,
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
+async function writeLines(filePath, lines) {
+  const content = lines.length ? `${lines.join("\n")}\n` : "";
+  await writeFile(filePath, content, "utf8");
 }
 
-function classifyPingResult(result) {
-  const lowerName = result.name.toLowerCase();
-  const isGoogleDeprecated = lowerName.includes("google") && result.status === 404;
-  const isBingDeprecated = lowerName.includes("bing") && result.status === 410;
-  if (isGoogleDeprecated || isBingDeprecated) {
-    return "deprecated-endpoint";
-  }
-  return result.ok ? "ok" : "fail";
+function formatDate(value) {
+  return value || "-";
 }
 
-async function writeLines(file, lines) {
-  const content = lines.length > 0 ? `${lines.join("\n")}\n` : "";
-  await writeFile(file, content, "utf8");
+function formatPriorityLine(entry) {
+  return `${entry.score}\t${entry.tier}\t${formatDate(entry.lastmod)}\t${entry.url}`;
 }
 
-function formatDate(lastmod) {
-  return lastmod || "-";
+function formatOkLine(entry) {
+  return `${entry.status}\t${entry.method}\t${entry.url}\t${entry.finalUrl}`;
 }
 
-function formatPriorityLine(item) {
-  return `${item.score}\t${item.tier}\t${formatDate(item.lastmod)}\t${item.url}`;
-}
-
-function formatOkLine(result) {
-  return `${result.status}\t${result.method}\t${result.url}\t${result.finalUrl}`;
-}
-
-function formatBadLine(result) {
-  const statusPart = result.status >= 0 ? String(result.status) : "ERR";
-  const message = result.error ? result.error.replace(/\s+/g, " ").trim() : "";
-  return `${statusPart}\t${result.method}\t${result.url}\t${message}`;
+function formatBadLine(entry) {
+  const status = entry.status >= 0 ? String(entry.status) : "ERR";
+  const error = entry.error ? entry.error.replace(/\s+/g, " ").trim() : "";
+  return `${status}\t${entry.method}\t${entry.url}\t${error}`;
 }
 
 async function main() {
-  const startedAt = Date.now();
+  const startMs = Date.now();
   const args = parseArgs(process.argv.slice(2));
 
-  const inputSitemaps = [...new Set(args.sitemaps.map((sitemap) => normalizeAbsoluteUrl(sitemap)).filter(Boolean))];
-  if (inputSitemaps.length === 0) {
-    throw new Error("No valid input sitemap URLs provided");
-  }
-
-  const crawlResults = await asyncPool(
-    Math.min(MAX_CONCURRENCY, inputSitemaps.length),
-    inputSitemaps,
-    async (sitemap) => {
-      const result = await crawlSitemaps(sitemap);
-      return { rootSitemap: sitemap, ...result };
-    },
-  );
-
-  const rawUrls = [];
-  let sitemapCount = 0;
-  const fetchErrors = [];
-  for (const result of crawlResults) {
-    rawUrls.push(...result.rawUrls);
-    sitemapCount += result.sitemapCount;
-    fetchErrors.push(
-      ...result.fetchErrors.map((err) => `[${result.rootSitemap}] ${err}`),
-    );
-  }
-
-  const deduped = dedupeByLatestLastmod(rawUrls);
-  const { kept, skipped } = splitDuplicateSuffixUrls(deduped);
-  const ranked = sortByPriority(kept);
+  const crawl = await crawlSitemaps(args.sitemap);
+  const deduped = dedupeByLatestLastmod(crawl.urls);
+  const split = splitDuplicateSuffixUrls(deduped);
+  const ranked = sortByPriority(split.kept);
   const top = ranked.slice(0, args.top);
 
-  const topStatus = await asyncPool(MAX_CONCURRENCY, top, async (item) => {
-    const status = await checkUrlReachability(item.url);
-    return { ...status, url: item.url };
+  const topStatuses = await asyncPool(MAX_CONCURRENCY, top, async (entry) => {
+    const status = await checkUrlReachability(entry.url);
+    return { ...status, url: entry.url };
   });
 
-  const okStatuses = topStatus.filter((item) => item.ok);
-  const badStatuses = topStatus.filter((item) => !item.ok);
+  const ok = topStatuses.filter((x) => x.ok);
+  const bad = topStatuses.filter((x) => !x.ok);
 
-  const inspectLinks = top.map((item) => {
-    const inspectUrl = `https://search.google.com/search-console/inspect?resource_id=${encodeURIComponent(
-      args.property,
-    )}&id=${encodeURIComponent(item.url)}`;
-    return inspectUrl;
-  });
-
-  const pingTasks = [];
-  for (const sitemap of inputSitemaps) {
-    const sitemapEncoded = encodeURIComponent(sitemap);
-    pingTasks.push(
-      pingSearchEngine(
-        `Google [${sitemap}]`,
-        `https://www.google.com/ping?sitemap=${sitemapEncoded}`,
-      ),
-    );
-    pingTasks.push(
-      pingSearchEngine(
-        `Bing [${sitemap}]`,
-        `https://www.bing.com/ping?sitemap=${sitemapEncoded}`,
-      ),
-    );
-  }
-  const pingResults = await Promise.all(pingTasks);
+  const inspectLinks = top.map(
+    (entry) =>
+      `https://search.google.com/search-console/inspect?resource_id=${encodeURIComponent(
+        args.property,
+      )}&url=${encodeURIComponent(entry.url)}`,
+  );
 
   await writeLines(
     OUTPUT_FILES.all,
-    ["url\tlastmod", ...deduped.map((item) => `${item.url}\t${formatDate(item.lastmod)}`)],
+    ["url\tlastmod", ...deduped.map((entry) => `${entry.url}\t${formatDate(entry.lastmod)}`)],
   );
-
   await writeLines(
     OUTPUT_FILES.skipped,
     [
       "url\tlastmod\treason",
-      ...skipped.map(
-        (item) => `${item.url}\t${formatDate(item.lastmod)}\t${item.reason ?? "Skipped"}`,
+      ...split.skipped.map(
+        (entry) => `${entry.url}\t${formatDate(entry.lastmod)}\t${entry.reason}`,
       ),
     ],
   );
-
   await writeLines(
     OUTPUT_FILES.sorted,
-    ["score\ttier\tlastmod\turl", ...ranked.map((item) => formatPriorityLine(item))],
+    ["score\ttier\tlastmod\turl", ...ranked.map((entry) => formatPriorityLine(entry))],
   );
-
   await writeLines(
     OUTPUT_FILES.top,
-    ["score\ttier\tlastmod\turl", ...top.map((item) => formatPriorityLine(item))],
+    ["score\ttier\tlastmod\turl", ...top.map((entry) => formatPriorityLine(entry))],
   );
-
   await writeLines(
     OUTPUT_FILES.ok,
-    ["status\tmethod\turl\tfinal_url", ...okStatuses.map((item) => formatOkLine(item))],
+    ["status\tmethod\turl\tfinal_url", ...ok.map((entry) => formatOkLine(entry))],
   );
-
   await writeLines(
     OUTPUT_FILES.bad,
-    ["status\tmethod\turl\terror", ...badStatuses.map((item) => formatBadLine(item))],
+    ["status\tmethod\turl\terror", ...bad.map((entry) => formatBadLine(entry))],
   );
-
   await writeLines(OUTPUT_FILES.inspect, inspectLinks);
 
-  const elapsedSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
+  const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
   const tierCounts = ranked.reduce(
-    (acc, item) => {
-      acc[item.tier] = (acc[item.tier] || 0) + 1;
+    (acc, entry) => {
+      acc[entry.tier] = (acc[entry.tier] || 0) + 1;
       return acc;
     },
     { highest: 0, medium: 0, normal: 0, none: 0 },
   );
 
-  const pingSummary = pingResults
-    .map((p) => {
-      const state = classifyPingResult(p);
-      if (state === "deprecated-endpoint") {
-        return `${p.name}: DEPRECATED ENDPOINT (${p.status})`;
-      }
-      return `${p.name}: ${p.ok ? "OK" : "FAIL"} (${p.status >= 0 ? p.status : p.error})`;
-    })
-    .join(" | ");
-
   console.log("Indexing Booster Summary");
   console.log("========================");
-  console.log(`Input sitemap count: ${inputSitemaps.length}`);
-  for (const sitemap of inputSitemaps) {
-    console.log(`- ${sitemap}`);
-  }
+  console.log(`Sitemap: ${args.sitemap}`);
   console.log(`Property: ${args.property}`);
-  console.log(`Sitemaps fetched (including nested): ${sitemapCount}`);
-  console.log(`Raw URLs found: ${rawUrls.length}`);
+  console.log(`Sitemap files fetched: ${crawl.fetchedSitemaps}`);
+  console.log(`Raw URL rows found: ${crawl.urls.length}`);
   console.log(`Unique URLs after de-duplication: ${deduped.length}`);
-  console.log(`Skipped numeric duplicate slugs: ${skipped.length}`);
-  console.log(`Prioritized URLs considered: ${ranked.length}`);
-  console.log(`Tier counts: highest=${tierCounts.highest}, medium=${tierCounts.medium}, normal=${tierCounts.normal}, none=${tierCounts.none}`);
+  console.log(`Skipped numeric suffix URLs: ${split.skipped.length}`);
+  console.log(`URLs scored: ${ranked.length}`);
+  console.log(
+    `Tier counts: highest=${tierCounts.highest}, medium=${tierCounts.medium}, normal=${tierCounts.normal}, none=${tierCounts.none}`,
+  );
   console.log(`Top URLs checked: ${top.length}`);
-  console.log(`Reachable (2xx/3xx): ${okStatuses.length}`);
-  console.log(`Bad/Failed: ${badStatuses.length}`);
-  console.log(`Search engine ping results: ${pingSummary}`);
-  console.log(`Sitemap parse fetch warnings: ${fetchErrors.length}`);
+  console.log(`Reachable (2xx/3xx): ${ok.length}`);
+  console.log(`Bad/Failed: ${bad.length}`);
+  console.log(`Sitemap parse warnings: ${crawl.errors.length}`);
   console.log(`Output files: ${Object.values(OUTPUT_FILES).join(", ")}`);
-  console.log(`Done in ${elapsedSeconds}s`);
+  console.log(`Done in ${elapsed}s`);
 
-  if (fetchErrors.length > 0) {
+  if (crawl.errors.length > 0) {
     console.warn("\nWarnings:");
-    for (const error of fetchErrors.slice(0, 10)) {
-      console.warn(`- ${error}`);
+    for (const warning of crawl.errors.slice(0, 10)) {
+      console.warn(`- ${warning}`);
     }
-    if (fetchErrors.length > 10) {
-      console.warn(`- ... ${fetchErrors.length - 10} more`);
+    if (crawl.errors.length > 10) {
+      console.warn(`- ... ${crawl.errors.length - 10} more`);
     }
   }
 }
 
 main().catch((error) => {
   console.error("Indexing booster failed.");
-  if (error instanceof Error) {
-    console.error(error.message);
-  } else {
-    console.error(String(error));
-  }
+  console.error(error instanceof Error ? error.message : String(error));
+  console.error("");
   console.error(usage());
   process.exit(1);
 });
