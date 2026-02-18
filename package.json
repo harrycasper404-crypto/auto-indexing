@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/prerender.mjs",
-    "indexing:booster": "node scripts/indexing-booster.js --sitemap https://trinityglobals.com/sitemap.xml --property sc-domain:trinityglobals.com --top 50",
+    "indexing:booster": "node scripts/indexing-booster.js --sitemap https://trinityglobals.com/sitemap.xml --sitemap https://trinityglobals.com/blog/sitemap.xml/ --property sc-domain:trinityglobals.com --top 50",
     "lint": "eslint .",
     "proxy:airports": "node scripts/aerodatabox-proxy.mjs",
     "preview": "vite preview",

@@ -76,16 +76,16 @@ const OUTPUT_FILES = {
 function usage() {
   return [
     "Usage:",
-    "  node scripts/indexing-booster.js --sitemap <url> [--property <gsc-property>] [--top <N>]",
+    "  node scripts/indexing-booster.js --sitemap <url> [--sitemap <url> ...] [--property <gsc-property>] [--top <N>]",
     "",
     "Example:",
-    "  node scripts/indexing-booster.js --sitemap https://trinityglobals.com/sitemap.xml --property sc-domain:trinityglobals.com --top 50",
+    "  node scripts/indexing-booster.js --sitemap https://trinityglobals.com/sitemap.xml --sitemap https://trinityglobals.com/blog/sitemap.xml/ --property sc-domain:trinityglobals.com --top 50",
   ].join("\n");
 }
 
 function parseArgs(argv) {
   const args = {
-    sitemap: "",
+    sitemaps: [],
     property: DEFAULT_PROPERTY,
     top: DEFAULT_TOP,
   };
@@ -103,10 +103,7 @@ function parseArgs(argv) {
       if (!value) {
         throw new Error("Missing value for --sitemap");
       }
-      if (args.sitemap) {
-        throw new Error("--sitemap can be provided only once");
-      }
-      args.sitemap = value.trim();
+      args.sitemaps.push(value.trim());
       i += 1;
       continue;
     }
@@ -136,14 +133,16 @@ function parseArgs(argv) {
     throw new Error(`Unknown argument: ${key}`);
   }
 
-  if (!args.sitemap) {
-    throw new Error("--sitemap is required");
+  if (args.sitemaps.length === 0) {
+    throw new Error("At least one --sitemap is required");
   }
 
-  try {
-    new URL(args.sitemap);
-  } catch {
-    throw new Error("Invalid --sitemap URL");
+  for (const sitemap of args.sitemaps) {
+    try {
+      new URL(sitemap);
+    } catch {
+      throw new Error(`Invalid --sitemap URL: ${sitemap}`);
+    }
   }
 
   return args;
@@ -539,8 +538,33 @@ async function main() {
   const startMs = Date.now();
   const args = parseArgs(process.argv.slice(2));
 
-  const crawl = await crawlSitemaps(args.sitemap);
-  const deduped = dedupeByLatestLastmod(crawl.urls);
+  const inputSitemaps = [
+    ...new Set(args.sitemaps.map((sitemap) => normalizeAbsoluteUrl(sitemap)).filter(Boolean)),
+  ];
+  if (inputSitemaps.length === 0) {
+    throw new Error("No valid sitemap URLs provided");
+  }
+
+  const crawlResults = await asyncPool(
+    Math.min(MAX_CONCURRENCY, inputSitemaps.length),
+    inputSitemaps,
+    async (sitemap) => {
+      const crawl = await crawlSitemaps(sitemap);
+      return { sitemap, ...crawl };
+    },
+  );
+
+  const allUrls = [];
+  const allWarnings = [];
+  let fetchedSitemapFiles = 0;
+
+  for (const result of crawlResults) {
+    allUrls.push(...result.urls);
+    fetchedSitemapFiles += result.fetchedSitemaps;
+    allWarnings.push(...result.errors.map((error) => `[${result.sitemap}] ${error}`));
+  }
+
+  const deduped = dedupeByLatestLastmod(allUrls);
   const split = splitDuplicateSuffixUrls(deduped);
   const ranked = sortByPriority(split.kept);
   const top = ranked.slice(0, args.top);
@@ -602,10 +626,13 @@ async function main() {
 
   console.log("Indexing Booster Summary");
   console.log("========================");
-  console.log(`Sitemap: ${args.sitemap}`);
+  console.log(`Input sitemap count: ${inputSitemaps.length}`);
+  for (const sitemap of inputSitemaps) {
+    console.log(`- ${sitemap}`);
+  }
   console.log(`Property: ${args.property}`);
-  console.log(`Sitemap files fetched: ${crawl.fetchedSitemaps}`);
-  console.log(`Raw URL rows found: ${crawl.urls.length}`);
+  console.log(`Sitemap files fetched: ${fetchedSitemapFiles}`);
+  console.log(`Raw URL rows found: ${allUrls.length}`);
   console.log(`Unique URLs after de-duplication: ${deduped.length}`);
   console.log(`Skipped numeric suffix URLs: ${split.skipped.length}`);
   console.log(`URLs scored: ${ranked.length}`);
@@ -615,17 +642,17 @@ async function main() {
   console.log(`Top URLs checked: ${top.length}`);
   console.log(`Reachable (2xx/3xx): ${ok.length}`);
   console.log(`Bad/Failed: ${bad.length}`);
-  console.log(`Sitemap parse warnings: ${crawl.errors.length}`);
+  console.log(`Sitemap parse warnings: ${allWarnings.length}`);
   console.log(`Output files: ${Object.values(OUTPUT_FILES).join(", ")}`);
   console.log(`Done in ${elapsed}s`);
 
-  if (crawl.errors.length > 0) {
+  if (allWarnings.length > 0) {
     console.warn("\nWarnings:");
-    for (const warning of crawl.errors.slice(0, 10)) {
+    for (const warning of allWarnings.slice(0, 10)) {
       console.warn(`- ${warning}`);
     }
-    if (crawl.errors.length > 10) {
-      console.warn(`- ... ${crawl.errors.length - 10} more`);
+    if (allWarnings.length > 10) {
+      console.warn(`- ... ${allWarnings.length - 10} more`);
     }
   }
 }

@@ -1,7 +1,7 @@
 # TrinityGlobals Indexing Booster
 
 ## What This Automation Does
-- Fetches sitemap XML (`https://trinityglobals.com/sitemap.xml` by default in workflow).
+- Fetches one or more sitemap XML URLs (`https://trinityglobals.com/sitemap.xml` + `https://trinityglobals.com/blog/sitemap.xml/` in workflow).
 - Parses all `<url>` entries and extracts `loc` and `lastmod` (if present).
 - Skips numeric duplicate slugs ending with `-<number>` (for example `.../cheap-flights-usa-2/`).
 - Scores and sorts URLs by priority:
@@ -26,6 +26,7 @@
 ```bash
 node scripts/indexing-booster.js \
   --sitemap https://trinityglobals.com/sitemap.xml \
+  --sitemap https://trinityglobals.com/blog/sitemap.xml/ \
   --property sc-domain:trinityglobals.com \
   --top 50
 ```
