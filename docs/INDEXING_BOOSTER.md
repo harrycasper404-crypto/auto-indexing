@@ -16,6 +16,7 @@
 - It does **not** call an official Google API to force indexing requests for arbitrary pages.
 - Google does not offer a generic public "request indexing for any URL" API for normal websites.
 - The script prepares high-priority inspect links so you can do controlled manual requests in Search Console.
+- Note: Google/Bing legacy sitemap ping endpoints can return `404/410` even when sitemap URLs are valid, because those endpoints are deprecated/retired.
 
 ## Local Run
 ```bash

@@ -547,6 +547,16 @@ async function pingSearchEngine(name, endpoint) {
   }
 }
 
+function classifyPingResult(result) {
+  const lowerName = result.name.toLowerCase();
+  const isGoogleDeprecated = lowerName.includes("google") && result.status === 404;
+  const isBingDeprecated = lowerName.includes("bing") && result.status === 410;
+  if (isGoogleDeprecated || isBingDeprecated) {
+    return "deprecated-endpoint";
+  }
+  return result.ok ? "ok" : "fail";
+}
+
 async function writeLines(file, lines) {
   const content = lines.length > 0 ? `${lines.join("\n")}\n` : "";
   await writeFile(file, content, "utf8");
@@ -684,7 +694,13 @@ async function main() {
   );
 
   const pingSummary = pingResults
-    .map((p) => `${p.name}: ${p.ok ? "OK" : "FAIL"} (${p.status >= 0 ? p.status : p.error})`)
+    .map((p) => {
+      const state = classifyPingResult(p);
+      if (state === "deprecated-endpoint") {
+        return `${p.name}: DEPRECATED ENDPOINT (${p.status})`;
+      }
+      return `${p.name}: ${p.ok ? "OK" : "FAIL"} (${p.status >= 0 ? p.status : p.error})`;
+    })
     .join(" | ");
 
   console.log("Indexing Booster Summary");
