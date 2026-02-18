@@ -62,16 +62,16 @@ function usage() {
   const script = "node scripts/indexing-booster.js";
   return [
     "Usage:",
-    `  ${script} --sitemap <sitemap-url> [--property <gsc-property>] [--top <N>]`,
+    `  ${script} --sitemap <sitemap-url> [--sitemap <sitemap-url> ...] [--property <gsc-property>] [--top <N>]`,
     "",
     "Example:",
-    `  ${script} --sitemap https://trinityglobals.com/sitemap.xml --property ${DEFAULT_PROPERTY} --top 50`,
+    `  ${script} --sitemap https://trinityglobals.com/sitemap.xml --sitemap https://trinityglobals.com/blog/sitemap.xml/ --property ${DEFAULT_PROPERTY} --top 50`,
   ].join("\n");
 }
 
 function parseArgs(argv) {
   const args = {
-    sitemap: "",
+    sitemaps: [],
     property: DEFAULT_PROPERTY,
     top: DEFAULT_TOP,
   };
@@ -84,7 +84,7 @@ function parseArgs(argv) {
       if (!value) {
         throw new Error("Missing value for --sitemap");
       }
-      args.sitemap = value.trim();
+      args.sitemaps.push(value.trim());
       i += 1;
       continue;
     }
@@ -119,14 +119,16 @@ function parseArgs(argv) {
     throw new Error(`Unknown argument: ${key}`);
   }
 
-  if (!args.sitemap) {
-    throw new Error("--sitemap is required");
+  if (args.sitemaps.length === 0) {
+    throw new Error("At least one --sitemap is required");
   }
 
-  try {
-    new URL(args.sitemap);
-  } catch {
-    throw new Error("Invalid --sitemap URL");
+  for (const sitemap of args.sitemaps) {
+    try {
+      new URL(sitemap);
+    } catch {
+      throw new Error(`Invalid --sitemap URL: ${sitemap}`);
+    }
   }
 
   return args;
@@ -446,7 +448,12 @@ function splitDuplicateSuffixUrls(entries) {
 }
 
 function computePriority(url) {
-  const lower = decodeURIComponent(url).toLowerCase();
+  let lower = url.toLowerCase();
+  try {
+    lower = decodeURIComponent(url).toLowerCase();
+  } catch {
+    lower = url.toLowerCase();
+  }
 
   const highHits = HIGH_PRIORITY_TERMS.filter((term) => lower.includes(term));
   if (highHits.length > 0) {
@@ -567,7 +574,31 @@ async function main() {
   const startedAt = Date.now();
   const args = parseArgs(process.argv.slice(2));
 
-  const { rawUrls, sitemapCount, fetchErrors } = await crawlSitemaps(args.sitemap);
+  const inputSitemaps = [...new Set(args.sitemaps.map((sitemap) => normalizeAbsoluteUrl(sitemap)).filter(Boolean))];
+  if (inputSitemaps.length === 0) {
+    throw new Error("No valid input sitemap URLs provided");
+  }
+
+  const crawlResults = await asyncPool(
+    Math.min(MAX_CONCURRENCY, inputSitemaps.length),
+    inputSitemaps,
+    async (sitemap) => {
+      const result = await crawlSitemaps(sitemap);
+      return { rootSitemap: sitemap, ...result };
+    },
+  );
+
+  const rawUrls = [];
+  let sitemapCount = 0;
+  const fetchErrors = [];
+  for (const result of crawlResults) {
+    rawUrls.push(...result.rawUrls);
+    sitemapCount += result.sitemapCount;
+    fetchErrors.push(
+      ...result.fetchErrors.map((err) => `[${result.rootSitemap}] ${err}`),
+    );
+  }
+
   const deduped = dedupeByLatestLastmod(rawUrls);
   const { kept, skipped } = splitDuplicateSuffixUrls(deduped);
   const ranked = sortByPriority(kept);
@@ -588,11 +619,23 @@ async function main() {
     return inspectUrl;
   });
 
-  const sitemapEncoded = encodeURIComponent(args.sitemap);
-  const [googlePing, bingPing] = await Promise.all([
-    pingSearchEngine("Google", `https://www.google.com/ping?sitemap=${sitemapEncoded}`),
-    pingSearchEngine("Bing", `https://www.bing.com/ping?sitemap=${sitemapEncoded}`),
-  ]);
+  const pingTasks = [];
+  for (const sitemap of inputSitemaps) {
+    const sitemapEncoded = encodeURIComponent(sitemap);
+    pingTasks.push(
+      pingSearchEngine(
+        `Google [${sitemap}]`,
+        `https://www.google.com/ping?sitemap=${sitemapEncoded}`,
+      ),
+    );
+    pingTasks.push(
+      pingSearchEngine(
+        `Bing [${sitemap}]`,
+        `https://www.bing.com/ping?sitemap=${sitemapEncoded}`,
+      ),
+    );
+  }
+  const pingResults = await Promise.all(pingTasks);
 
   await writeLines(
     OUTPUT_FILES.all,
@@ -640,15 +683,18 @@ async function main() {
     { highest: 0, medium: 0, normal: 0, none: 0 },
   );
 
-  const pingSummary = [googlePing, bingPing]
+  const pingSummary = pingResults
     .map((p) => `${p.name}: ${p.ok ? "OK" : "FAIL"} (${p.status >= 0 ? p.status : p.error})`)
     .join(" | ");
 
   console.log("Indexing Booster Summary");
   console.log("========================");
-  console.log(`Sitemap: ${args.sitemap}`);
+  console.log(`Input sitemap count: ${inputSitemaps.length}`);
+  for (const sitemap of inputSitemaps) {
+    console.log(`- ${sitemap}`);
+  }
   console.log(`Property: ${args.property}`);
-  console.log(`Sitemaps fetched: ${sitemapCount}`);
+  console.log(`Sitemaps fetched (including nested): ${sitemapCount}`);
   console.log(`Raw URLs found: ${rawUrls.length}`);
   console.log(`Unique URLs after de-duplication: ${deduped.length}`);
   console.log(`Skipped numeric duplicate slugs: ${skipped.length}`);

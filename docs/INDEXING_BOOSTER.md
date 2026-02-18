@@ -1,14 +1,14 @@
 # TrinityGlobals Auto Indexing Booster
 
 ## What It Does
-- Fetches a sitemap URL (supports both `urlset` and `sitemapindex`).
+- Fetches one or more sitemap URLs (supports both `urlset` and `sitemapindex`).
 - Extracts page URLs and `lastmod`.
 - Skips numeric duplicate slugs where a base slug exists (example: `some-page-2` when `some-page` exists).
 - Scores and sorts URLs by indexing priority:
   - Highest intent terms: `cancel`, `refund`, `refundable`, `change`, `modify`, `reschedule`, `rebook`, `basic-economy`, `fees`
   - Medium route/destination terms: `routes`, `destinations`, `us-to-uk`, `london`, `dubai`, `uae`, `mexico`, `africa`, `europe`, `paris`, `hong-kong`
   - Normal commercial terms: `cheap`, `best`, `deals`, `discount`, `book`, `domestic`, `international`, `nonstop`, `price-comparison`
-- Pings Google and Bing with the sitemap URL.
+- Pings Google and Bing with each input sitemap URL.
 - Validates the top N URLs by HTTP status (2xx/3xx = ok).
 - Produces output text files for review and manual indexing workflow.
 
@@ -21,6 +21,7 @@
 ```bash
 node scripts/indexing-booster.js \
   --sitemap https://trinityglobals.com/sitemap.xml \
+  --sitemap https://trinityglobals.com/blog/sitemap.xml/ \
   --property sc-domain:trinityglobals.com \
   --top 50
 ```
