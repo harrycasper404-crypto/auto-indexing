@@ -29,7 +29,7 @@ jobs:
       - name: Pick daily top 5 URLs
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: node scripts/pick-daily-top5.js --property sc-domain:trinityglobals.com
+        run: node scripts/pick-daily-top5.js --property sc-domain:trinityglobals.com --indexed-file seo/data/already_indexed_urls.txt
 
       - name: Commit dashboard data
         run: |

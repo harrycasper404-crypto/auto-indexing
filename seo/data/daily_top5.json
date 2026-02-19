@@ -1,14 +1,16 @@
 {
-  "generated_at": "2026-02-19T00:23:31.977Z",
+  "generated_at": "2026-02-19T00:33:17.276Z",
   "mode": "fallback",
   "model": "deterministic",
+  "candidate_count": 50,
+  "excluded_indexed_count": 1,
   "top5": [
     {
-      "url": "https://trinityglobals.com/blog/cancel-flight-without-cancellation-fees-usa/",
-      "score": 304,
-      "lastmod": "2026-01-29T15:04:21+00:00",
+      "url": "https://trinityglobals.com/blog/cancel-flight-without-fees-usa/",
+      "score": 303,
+      "lastmod": "2026-01-19T14:04:03+00:00",
       "reason": "High score + freshness from cancellation/refund bucket (OK)",
-      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcancel-flight-without-cancellation-fees-usa%2F"
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcancel-flight-without-fees-usa%2F"
     },
     {
       "url": "https://trinityglobals.com/blog/basic-economy-change-rules-usa/",

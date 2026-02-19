@@ -5,13 +5,16 @@ import path from "node:path";
 
 const DEFAULT_PROPERTY = "sc-domain:trinityglobals.com";
 const DEFAULT_MODEL = "gpt-4.1-mini";
+const DEFAULT_INDEXED_FILE = "seo/data/already_indexed_urls.txt";
 const OUTPUT_FILE = path.join("seo", "data", "daily_top5.json");
+const CANDIDATE_LIMIT = 50;
 
 const FILES = {
   sorted: "urls_priority_sorted.txt",
   ok: "urls_ok.txt",
   bad: "urls_bad.txt",
   skipped: "urls_skipped_duplicates.txt",
+  skippedIndexed: "urls_skipped_already_indexed.txt",
 };
 
 const BUCKETS = {
@@ -70,7 +73,7 @@ const BUCKET_ORDER = [
 function usage() {
   return [
     "Usage:",
-    "  node scripts/pick-daily-top5.js [--property <gsc-property>] [--model <openai-model>]",
+    "  node scripts/pick-daily-top5.js [--property <gsc-property>] [--model <openai-model>] [--indexed-file <path>]",
     "",
     "Environment:",
     "  OPENAI_API_KEY=<key>",
@@ -82,6 +85,7 @@ function parseArgs(argv) {
   const args = {
     property: DEFAULT_PROPERTY,
     model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+    indexedFile: DEFAULT_INDEXED_FILE,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -107,6 +111,15 @@ function parseArgs(argv) {
         throw new Error("Missing value for --model");
       }
       args.model = value.trim();
+      i += 1;
+      continue;
+    }
+
+    if (key === "--indexed-file") {
+      if (!value) {
+        throw new Error("Missing value for --indexed-file");
+      }
+      args.indexedFile = value.trim();
       i += 1;
       continue;
     }
@@ -163,6 +176,32 @@ function parseTabFile(text) {
   return rows;
 }
 
+function extractUrlsFromText(text) {
+  const urls = new Set();
+  const lines = String(text).split(/\r?\n/);
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+
+    const matches = trimmed.match(/https?:\/\/[^\s,"']+/gi);
+    if (!matches) {
+      continue;
+    }
+
+    for (const match of matches) {
+      const normalized = normalizeUrl(match);
+      if (normalized) {
+        urls.add(normalized);
+      }
+    }
+  }
+
+  return urls;
+}
+
 function normalizeUrl(input) {
   try {
     const url = new URL(String(input).trim());
@@ -211,18 +250,56 @@ function tagsForUrl(url) {
   return tags;
 }
 
-function buildCandidates({ sortedRows, okRows, badRows }) {
+function buildIndexedExclusionSet({ skippedIndexedRows, indexedText }) {
+  const excluded = new Set();
+
+  for (const row of skippedIndexedRows) {
+    const normalized = normalizeUrl(row.url);
+    if (normalized) {
+      excluded.add(normalized);
+    }
+  }
+
+  for (const url of extractUrlsFromText(indexedText)) {
+    excluded.add(url);
+  }
+
+  return excluded;
+}
+
+function buildCandidates({ sortedRows, okRows, badRows, excludedSet }) {
   const okSet = new Set(okRows.map((row) => normalizeUrl(row.url)).filter(Boolean));
   const badSet = new Set(badRows.map((row) => normalizeUrl(row.url)).filter(Boolean));
+  const seen = new Set();
 
   const candidates = [];
   let idx = 1;
-  for (const row of sortedRows.slice(0, 50)) {
+  let excludedCount = 0;
+  for (const row of sortedRows) {
+    if (candidates.length >= CANDIDATE_LIMIT) {
+      break;
+    }
+
     const rawUrl = String(row.url || "").trim();
     if (!rawUrl) {
       continue;
     }
+
     const normalized = normalizeUrl(rawUrl);
+    if (!normalized) {
+      continue;
+    }
+
+    if (excludedSet.has(normalized)) {
+      excludedCount += 1;
+      continue;
+    }
+
+    if (seen.has(normalized)) {
+      continue;
+    }
+    seen.add(normalized);
+
     const isOk = normalized ? okSet.has(normalized) : false;
     const isBad = normalized ? badSet.has(normalized) : false;
     const status = isOk ? "OK" : isBad ? "BAD" : "UNKNOWN";
@@ -247,7 +324,7 @@ function buildCandidates({ sortedRows, okRows, badRows }) {
     idx += 1;
   }
 
-  return candidates;
+  return { candidates, excludedCount };
 }
 
 function compareCandidate(a, b) {
@@ -451,23 +528,35 @@ async function writeOutput(payload) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const [sortedText, okText, badText] = await Promise.all([
+  const [sortedText, okText, badText, skippedIndexedText, indexedText] = await Promise.all([
     readTextIfExists(FILES.sorted),
     readTextIfExists(FILES.ok),
     readTextIfExists(FILES.bad),
+    readTextIfExists(FILES.skippedIndexed),
+    readTextIfExists(args.indexedFile),
   ]);
 
   const sortedRows = parseTabFile(sortedText);
   const okRows = parseTabFile(okText);
   const badRows = parseTabFile(badText);
+  const skippedIndexedRows = parseTabFile(skippedIndexedText);
+  const excludedSet = buildIndexedExclusionSet({
+    skippedIndexedRows,
+    indexedText,
+  });
 
-  const candidates = buildCandidates({ sortedRows, okRows, badRows });
+  const { candidates, excludedCount } = buildCandidates({
+    sortedRows,
+    okRows,
+    badRows,
+    excludedSet,
+  });
   if (candidates.length === 0) {
     const emptyPayload = {
       generated_at: new Date().toISOString(),
       mode: "empty",
       top5: [],
-      note: "No candidates found from urls_priority_sorted.txt",
+      note: "No candidates found from urls_priority_sorted.txt after indexed exclusions",
     };
     await writeOutput(emptyPayload);
     console.log("Daily top5 generated in empty mode (no candidates).");
@@ -514,12 +603,16 @@ async function main() {
     generated_at: new Date().toISOString(),
     mode,
     model: mode === "openai" ? args.model : "deterministic",
+    candidate_count: candidates.length,
+    excluded_indexed_count: excludedCount,
     top5,
   };
   await writeOutput(payload);
 
   console.log(`Daily top5 generated: ${OUTPUT_FILE}`);
   console.log(`Mode: ${mode}`);
+  console.log(`Candidates considered: ${candidates.length}`);
+  console.log(`Excluded indexed URLs: ${excludedCount}`);
   console.log(`URLs picked: ${top5.length}`);
 }
 
