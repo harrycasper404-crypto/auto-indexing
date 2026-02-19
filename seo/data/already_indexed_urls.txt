@@ -1,0 +1,5 @@
+# Paste URLs exported from Google Search Console here (one per line).
+# CSV export also works; script auto-extracts http/https URLs from each line.
+#
+# Example:
+# https://trinityglobals.com/blog/sample-page/

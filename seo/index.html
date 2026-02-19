@@ -282,6 +282,8 @@
           <button class="tab-btn" data-tab="ok" type="button">OK URLs</button>
           <button class="tab-btn" data-tab="bad" type="button">BAD URLs</button>
           <button class="tab-btn" data-tab="skipped" type="button">Skipped Duplicates</button>
+          <button class="tab-btn" data-tab="indexed" type="button">Skipped Indexed</button>
+          <button class="tab-btn" data-tab="remove" type="button">Remove Candidates</button>
         </div>
       </div>
     </section>
@@ -318,6 +320,22 @@
       <div id="contentSkipped" class="table-wrap"></div>
     </section>
 
+    <section id="panelIndexed" class="panel hidden">
+      <div class="panel-header">
+        <h2 class="panel-title">Skipped Already Indexed</h2>
+        <span id="countIndexed" class="panel-count"></span>
+      </div>
+      <div id="contentIndexed" class="table-wrap"></div>
+    </section>
+
+    <section id="panelRemove" class="panel hidden">
+      <div class="panel-header">
+        <h2 class="panel-title">Removal Candidates</h2>
+        <span id="countRemove" class="panel-count"></span>
+      </div>
+      <div id="contentRemove" class="table-wrap"></div>
+    </section>
+
     <div id="errorBox" class="error-box hidden"></div>
   </main>
 
@@ -334,6 +352,8 @@
       ok: document.getElementById("panelOk"),
       bad: document.getElementById("panelBad"),
       skipped: document.getElementById("panelSkipped"),
+      indexed: document.getElementById("panelIndexed"),
+      remove: document.getElementById("panelRemove"),
     };
 
     function escapeHtml(input) {
@@ -366,9 +386,11 @@
       const items = [
         { label: "Total URLs", value: counts.total_urls || 0 },
         { label: "Kept URLs", value: counts.kept_urls || 0 },
-        { label: "Skipped", value: counts.skipped_duplicates || 0 },
+        { label: "Skipped Duplicates", value: counts.skipped_duplicates || 0 },
+        { label: "Skipped Indexed", value: counts.skipped_already_indexed || 0 },
         { label: "OK", value: counts.ok_count || 0 },
         { label: "Bad", value: counts.bad_count || 0 },
+        { label: "Remove Candidates", value: counts.remove_candidates || 0 },
       ];
 
       const grid = document.getElementById("summaryGrid");
@@ -518,6 +540,68 @@
         "</table>";
     }
 
+    function renderIndexedTable() {
+      const rows = withFilter(asArray(state.data && state.data.skipped_already_indexed), (row) =>
+        [row.url, row.lastmod, row.reason].join(" "),
+      );
+      document.getElementById("countIndexed").textContent = `${rows.length} rows`;
+
+      if (rows.length === 0) {
+        document.getElementById("contentIndexed").innerHTML = '<div class="empty">No rows found.</div>';
+        return;
+      }
+
+      const body = rows
+        .map((row) => {
+          const url = row.url || "";
+          return (
+            "<tr>" +
+            `<td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></td>` +
+            `<td>${escapeHtml(row.lastmod || "-")}</td>` +
+            `<td>${escapeHtml(row.reason || "-")}</td>` +
+            "</tr>"
+          );
+        })
+        .join("");
+
+      document.getElementById("contentIndexed").innerHTML =
+        "<table>" +
+        "<thead><tr><th>URL</th><th>Lastmod</th><th>Reason</th></tr></thead>" +
+        `<tbody>${body}</tbody>` +
+        "</table>";
+    }
+
+    function renderRemoveTable() {
+      const rows = withFilter(asArray(state.data && state.data.remove_candidates), (row) =>
+        [row.url, row.reason, row.source].join(" "),
+      );
+      document.getElementById("countRemove").textContent = `${rows.length} rows`;
+
+      if (rows.length === 0) {
+        document.getElementById("contentRemove").innerHTML = '<div class="empty">No rows found.</div>';
+        return;
+      }
+
+      const body = rows
+        .map((row) => {
+          const url = row.url || "";
+          return (
+            "<tr>" +
+            `<td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></td>` +
+            `<td>${escapeHtml(row.reason || "-")}</td>` +
+            `<td>${escapeHtml(row.source || "-")}</td>` +
+            "</tr>"
+          );
+        })
+        .join("");
+
+      document.getElementById("contentRemove").innerHTML =
+        "<table>" +
+        "<thead><tr><th>URL</th><th>Reason</th><th>Source</th></tr></thead>" +
+        `<tbody>${body}</tbody>` +
+        "</table>";
+    }
+
     function applyActiveTab() {
       Object.entries(panelMap).forEach(([tab, panel]) => {
         panel.classList.toggle("hidden", tab !== state.activeTab);
@@ -537,6 +621,8 @@
       renderOkTable();
       renderBadTable();
       renderSkippedTable();
+      renderIndexedTable();
+      renderRemoveTable();
       applyActiveTab();
     }
 

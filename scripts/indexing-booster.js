@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import zlib from "node:zlib";
 
 const DEFAULT_PROPERTY = "sc-domain:trinityglobals.com";
 const DEFAULT_TOP = 50;
+const DEFAULT_INDEXED_FILE = "seo/data/already_indexed_urls.txt";
 const FETCH_TIMEOUT_MS = 15000;
 const MAX_CONCURRENCY = 10;
 const MAX_SITEMAPS_TO_FETCH = 2000;
@@ -66,20 +67,22 @@ const NORMAL_PRIORITY_TERMS = [
 const OUTPUT_FILES = {
   all: "urls_all.txt",
   skipped: "urls_skipped_duplicates.txt",
+  skippedIndexed: "urls_skipped_already_indexed.txt",
   sorted: "urls_priority_sorted.txt",
   top: "urls_priority_top50.txt",
   ok: "urls_ok.txt",
   bad: "urls_bad.txt",
   inspect: "inspect_links_priority_top50.txt",
+  remove: "urls_remove_candidates.txt",
 };
 
 function usage() {
   return [
     "Usage:",
-    "  node scripts/indexing-booster.js --sitemap <url> [--sitemap <url> ...] [--property <gsc-property>] [--top <N>]",
+    "  node scripts/indexing-booster.js --sitemap <url> [--sitemap <url> ...] [--property <gsc-property>] [--top <N>] [--indexed-file <path>]",
     "",
     "Example:",
-    "  node scripts/indexing-booster.js --sitemap https://trinityglobals.com/sitemap.xml --sitemap https://trinityglobals.com/blog/sitemap.xml/ --property sc-domain:trinityglobals.com --top 50",
+    "  node scripts/indexing-booster.js --sitemap https://trinityglobals.com/sitemap.xml --sitemap https://trinityglobals.com/blog/sitemap.xml/ --property sc-domain:trinityglobals.com --top 50 --indexed-file seo/data/already_indexed_urls.txt",
   ].join("\n");
 }
 
@@ -88,6 +91,7 @@ function parseArgs(argv) {
     sitemaps: [],
     property: DEFAULT_PROPERTY,
     top: DEFAULT_TOP,
+    indexedFile: DEFAULT_INDEXED_FILE,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -126,6 +130,15 @@ function parseArgs(argv) {
         throw new Error("--top must be a positive integer");
       }
       args.top = parsed;
+      i += 1;
+      continue;
+    }
+
+    if (key === "--indexed-file") {
+      if (!value) {
+        throw new Error("Missing value for --indexed-file");
+      }
+      args.indexedFile = value.trim();
       i += 1;
       continue;
     }
@@ -534,6 +547,143 @@ function formatBadLine(entry) {
   return `${status}\t${entry.method}\t${entry.url}\t${error}`;
 }
 
+function baseFromNumericSuffixUrl(urlString) {
+  try {
+    const url = new URL(urlString);
+    const segments = url.pathname.split("/").filter(Boolean);
+    if (segments.length === 0) {
+      return "";
+    }
+    const last = segments[segments.length - 1];
+    const match = last.match(/^(.*)-(\d+)$/);
+    if (!match) {
+      return "";
+    }
+    const suffix = Number.parseInt(match[2], 10);
+    if (!Number.isInteger(suffix) || suffix < 2) {
+      return "";
+    }
+    segments[segments.length - 1] = match[1];
+    url.pathname = `/${segments.join("/")}${url.pathname.endsWith("/") ? "/" : ""}`;
+    return normalizeAbsoluteUrl(url.toString());
+  } catch {
+    return "";
+  }
+}
+
+async function readTextIfExists(filePath) {
+  try {
+    const text = await readFile(filePath, "utf8");
+    return { found: true, text };
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      return { found: false, text: "" };
+    }
+    throw error;
+  }
+}
+
+function extractUrlsFromText(text) {
+  const urls = new Set();
+  const lines = String(text).split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+    const matches = trimmed.match(/https?:\/\/[^\s,"']+/gi);
+    if (!matches) {
+      continue;
+    }
+    for (const match of matches) {
+      const normalized = normalizeAbsoluteUrl(match);
+      if (normalized) {
+        urls.add(normalized);
+      }
+    }
+  }
+  return urls;
+}
+
+async function loadIndexedUrls(indexedFilePath) {
+  const loaded = await readTextIfExists(indexedFilePath);
+  if (!loaded.found) {
+    return { found: false, set: new Set() };
+  }
+  return { found: true, set: extractUrlsFromText(loaded.text) };
+}
+
+function splitAlreadyIndexedUrls(entries, indexedSet) {
+  if (!indexedSet || indexedSet.size === 0) {
+    return { kept: entries, skipped: [] };
+  }
+
+  const kept = [];
+  const skipped = [];
+
+  for (const entry of entries) {
+    const normalized = normalizeAbsoluteUrl(entry.url);
+    if (normalized && indexedSet.has(normalized)) {
+      skipped.push({
+        ...entry,
+        reason: "Already indexed (GSC list)",
+      });
+      continue;
+    }
+    kept.push(entry);
+  }
+
+  return { kept, skipped };
+}
+
+function buildRemoveCandidates({
+  indexedSet,
+  canonicalUrlSet,
+  badStatuses,
+}) {
+  const map = new Map();
+
+  for (const indexedUrl of indexedSet) {
+    if (canonicalUrlSet.has(indexedUrl)) {
+      continue;
+    }
+
+    const base = baseFromNumericSuffixUrl(indexedUrl);
+    const reason =
+      base && canonicalUrlSet.has(base)
+        ? "Indexed duplicate slug variant; canonical URL exists"
+        : "Indexed URL not found in current canonical sitemap set";
+
+    map.set(indexedUrl, {
+      url: indexedUrl,
+      reason,
+      source: "indexed-list",
+    });
+  }
+
+  for (const row of badStatuses) {
+    const status = Number.parseInt(String(row.status), 10);
+    if (![404, 410, 451].includes(status)) {
+      continue;
+    }
+    const normalized = normalizeAbsoluteUrl(row.url);
+    if (!normalized || map.has(normalized)) {
+      continue;
+    }
+    map.set(normalized, {
+      url: normalized,
+      reason: `Health check returned HTTP ${status}`,
+      source: "health-check",
+    });
+  }
+
+  return [...map.values()].sort((a, b) => a.url.localeCompare(b.url));
+}
+
+function formatRemoveLine(entry) {
+  return `${entry.url}\t${entry.reason}\t${entry.source}`;
+}
+
 async function main() {
   const startMs = Date.now();
   const args = parseArgs(process.argv.slice(2));
@@ -565,8 +715,12 @@ async function main() {
   }
 
   const deduped = dedupeByLatestLastmod(allUrls);
-  const split = splitDuplicateSuffixUrls(deduped);
-  const ranked = sortByPriority(split.kept);
+  const splitDuplicates = splitDuplicateSuffixUrls(deduped);
+
+  const indexed = await loadIndexedUrls(args.indexedFile);
+  const splitIndexed = splitAlreadyIndexedUrls(splitDuplicates.kept, indexed.set);
+
+  const ranked = sortByPriority(splitIndexed.kept);
   const top = ranked.slice(0, args.top);
 
   const topStatuses = await asyncPool(MAX_CONCURRENCY, top, async (entry) => {
@@ -576,6 +730,13 @@ async function main() {
 
   const ok = topStatuses.filter((x) => x.ok);
   const bad = topStatuses.filter((x) => !x.ok);
+
+  const canonicalUrlSet = new Set(splitDuplicates.kept.map((entry) => normalizeAbsoluteUrl(entry.url)));
+  const removeCandidates = buildRemoveCandidates({
+    indexedSet: indexed.set,
+    canonicalUrlSet,
+    badStatuses: bad,
+  });
 
   const inspectLinks = top.map(
     (entry) =>
@@ -592,7 +753,16 @@ async function main() {
     OUTPUT_FILES.skipped,
     [
       "url\tlastmod\treason",
-      ...split.skipped.map(
+      ...splitDuplicates.skipped.map(
+        (entry) => `${entry.url}\t${formatDate(entry.lastmod)}\t${entry.reason}`,
+      ),
+    ],
+  );
+  await writeLines(
+    OUTPUT_FILES.skippedIndexed,
+    [
+      "url\tlastmod\treason",
+      ...splitIndexed.skipped.map(
         (entry) => `${entry.url}\t${formatDate(entry.lastmod)}\t${entry.reason}`,
       ),
     ],
@@ -614,6 +784,13 @@ async function main() {
     ["status\tmethod\turl\terror", ...bad.map((entry) => formatBadLine(entry))],
   );
   await writeLines(OUTPUT_FILES.inspect, inspectLinks);
+  await writeLines(
+    OUTPUT_FILES.remove,
+    [
+      "url\treason\tsource",
+      ...removeCandidates.map((entry) => formatRemoveLine(entry)),
+    ],
+  );
 
   const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
   const tierCounts = ranked.reduce(
@@ -632,9 +809,13 @@ async function main() {
   }
   console.log(`Property: ${args.property}`);
   console.log(`Sitemap files fetched: ${fetchedSitemapFiles}`);
+  console.log(
+    `Already indexed list: ${indexed.found ? `${indexed.set.size} URLs loaded from ${args.indexedFile}` : `not found (${args.indexedFile})`}`,
+  );
   console.log(`Raw URL rows found: ${allUrls.length}`);
   console.log(`Unique URLs after de-duplication: ${deduped.length}`);
-  console.log(`Skipped numeric suffix URLs: ${split.skipped.length}`);
+  console.log(`Skipped numeric suffix URLs: ${splitDuplicates.skipped.length}`);
+  console.log(`Skipped already indexed URLs: ${splitIndexed.skipped.length}`);
   console.log(`URLs scored: ${ranked.length}`);
   console.log(
     `Tier counts: highest=${tierCounts.highest}, medium=${tierCounts.medium}, normal=${tierCounts.normal}, none=${tierCounts.none}`,
@@ -642,6 +823,7 @@ async function main() {
   console.log(`Top URLs checked: ${top.length}`);
   console.log(`Reachable (2xx/3xx): ${ok.length}`);
   console.log(`Bad/Failed: ${bad.length}`);
+  console.log(`Removal candidates suggested: ${removeCandidates.length}`);
   console.log(`Sitemap parse warnings: ${allWarnings.length}`);
   console.log(`Output files: ${Object.values(OUTPUT_FILES).join(", ")}`);
   console.log(`Done in ${elapsed}s`);

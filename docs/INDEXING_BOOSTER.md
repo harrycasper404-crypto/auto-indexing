@@ -9,14 +9,18 @@
   - Medium: route and destination patterns (uk, paris, dubai, uae, mexico, africa, europe, hong-kong, toronto, etc.)
   - Normal: cheap/best/deals/discount/book/booking/domestic/international/nonstop/price-comparison
 - Checks HTTP status for top N URLs (default 50) with concurrency limit 10.
+- Optionally reads already indexed URLs from `seo/data/already_indexed_urls.txt` and skips them.
+- Suggests removal candidates (`urls_remove_candidates.txt`) for URLs that are indexed but no longer in canonical sitemap set, or return hard bad statuses.
 - Generates output files:
   - `urls_all.txt`
   - `urls_skipped_duplicates.txt`
+  - `urls_skipped_already_indexed.txt`
   - `urls_priority_sorted.txt`
   - `urls_priority_top50.txt`
   - `urls_ok.txt`
   - `urls_bad.txt`
   - `inspect_links_priority_top50.txt`
+  - `urls_remove_candidates.txt`
 
 ## What It Does Not Do
 - It does not call an official API to auto-submit generic blog/article URLs for indexing.
@@ -28,7 +32,8 @@ node scripts/indexing-booster.js \
   --sitemap https://trinityglobals.com/sitemap.xml \
   --sitemap https://trinityglobals.com/blog/sitemap.xml/ \
   --property sc-domain:trinityglobals.com \
-  --top 50
+  --top 50 \
+  --indexed-file seo/data/already_indexed_urls.txt
 ```
 
 Or:

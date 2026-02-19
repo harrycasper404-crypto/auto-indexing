@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-18T23:54:57.871Z",
+  "generated_at": "2026-02-19T00:07:57.615Z",
   "property": "sc-domain:trinityglobals.com",
   "sitemap": "https://trinityglobals.com/sitemap.xml",
   "sitemaps": [
@@ -10,8 +10,10 @@
     "total_urls": 62,
     "kept_urls": 57,
     "skipped_duplicates": 5,
+    "skipped_already_indexed": 0,
     "ok_count": 48,
-    "bad_count": 2
+    "bad_count": 2,
+    "remove_candidates": 2
   },
   "top_priority": [
     {
@@ -694,6 +696,19 @@
       "url": "https://trinityglobals.com/blog/canada-to-usa-flights-3/",
       "lastmod": "2026-02-15T13:40:05+00:00",
       "reason": "Numeric slug suffix (-<number>)"
+    }
+  ],
+  "skipped_already_indexed": [],
+  "remove_candidates": [
+    {
+      "url": "https://trinityglobals.com/about-us",
+      "reason": "Health check returned HTTP 404",
+      "source": "health-check"
+    },
+    {
+      "url": "https://trinityglobals.com/cancellation-policy",
+      "reason": "Health check returned HTTP 404",
+      "source": "health-check"
     }
   ]
 }

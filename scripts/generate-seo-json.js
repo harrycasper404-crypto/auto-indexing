@@ -9,11 +9,13 @@ const DEFAULT_SITEMAP = "https://trinityglobals.com/sitemap.xml";
 const INPUT_FILES = {
   all: "urls_all.txt",
   skipped: "urls_skipped_duplicates.txt",
+  skippedIndexed: "urls_skipped_already_indexed.txt",
   sorted: "urls_priority_sorted.txt",
   top: "urls_priority_top50.txt",
   ok: "urls_ok.txt",
   bad: "urls_bad.txt",
   inspect: "inspect_links_priority_top50.txt",
+  remove: "urls_remove_candidates.txt",
 };
 
 const OUTPUT_FILE = path.join("seo", "data", "latest.json");
@@ -205,39 +207,66 @@ function buildSkippedRows(skippedRows) {
     .filter(Boolean);
 }
 
+function buildRemoveRows(removeRows) {
+  return removeRows
+    .map((row) => {
+      const url = String(row.url ?? "").trim();
+      if (!url) {
+        return null;
+      }
+      return {
+        url,
+        reason: String(row.reason ?? "").trim(),
+        source: String(row.source ?? "").trim(),
+      };
+    })
+    .filter(Boolean);
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const [allText, skippedText, sortedText, topText, okText, badText, inspectText] =
+  const [allText, skippedText, skippedIndexedText, sortedText, topText, okText, badText, inspectText, removeText] =
     await Promise.all([
       readTextIfExists(INPUT_FILES.all),
       readTextIfExists(INPUT_FILES.skipped),
+      readTextIfExists(INPUT_FILES.skippedIndexed),
       readTextIfExists(INPUT_FILES.sorted),
       readTextIfExists(INPUT_FILES.top),
       readTextIfExists(INPUT_FILES.ok),
       readTextIfExists(INPUT_FILES.bad),
       readTextIfExists(INPUT_FILES.inspect),
+      readTextIfExists(INPUT_FILES.remove),
     ]);
 
   const allRows = parseTabFile(allText);
   const skippedRowsRaw = parseTabFile(skippedText);
+  const skippedIndexedRowsRaw = parseTabFile(skippedIndexedText);
   const sortedRows = parseTabFile(sortedText);
   const topRowsRaw = parseTabFile(topText);
   const okRowsRaw = parseTabFile(okText);
   const badRowsRaw = parseTabFile(badText);
   const inspectLinks = parseInspectLinks(inspectText);
+  const removeRowsRaw = parseTabFile(removeText);
 
   const topRows = topRowsRaw.length > 0 ? topRowsRaw : sortedRows.slice(0, 50);
   const topPriority = buildTopPriority(topRows, inspectLinks, args.property);
   const ok = buildOkRows(okRowsRaw);
   const bad = buildBadRows(badRowsRaw);
   const skippedDuplicates = buildSkippedRows(skippedRowsRaw);
+  const skippedAlreadyIndexed = buildSkippedRows(skippedIndexedRowsRaw);
+  const removeCandidates = buildRemoveRows(removeRowsRaw);
 
   const counts = {
     total_urls: allRows.length,
-    kept_urls: Math.max(allRows.length - skippedDuplicates.length, 0),
+    kept_urls: Math.max(
+      allRows.length - skippedDuplicates.length - skippedAlreadyIndexed.length,
+      0,
+    ),
     skipped_duplicates: skippedDuplicates.length,
+    skipped_already_indexed: skippedAlreadyIndexed.length,
     ok_count: ok.length,
     bad_count: bad.length,
+    remove_candidates: removeCandidates.length,
   };
 
   const payload = {
@@ -250,6 +279,8 @@ async function main() {
     ok,
     bad,
     skipped_duplicates: skippedDuplicates,
+    skipped_already_indexed: skippedAlreadyIndexed,
+    remove_candidates: removeCandidates,
   };
 
   await mkdir(path.dirname(OUTPUT_FILE), { recursive: true });
@@ -258,7 +289,7 @@ async function main() {
   console.log("SEO JSON generated.");
   console.log(`Output: ${OUTPUT_FILE}`);
   console.log(
-    `Counts: total=${counts.total_urls}, kept=${counts.kept_urls}, skipped=${counts.skipped_duplicates}, ok=${counts.ok_count}, bad=${counts.bad_count}`,
+    `Counts: total=${counts.total_urls}, kept=${counts.kept_urls}, skipped_duplicates=${counts.skipped_duplicates}, skipped_indexed=${counts.skipped_already_indexed}, ok=${counts.ok_count}, bad=${counts.bad_count}, remove_candidates=${counts.remove_candidates}`,
   );
 }
 
