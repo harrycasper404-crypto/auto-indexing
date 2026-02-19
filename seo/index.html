@@ -381,14 +381,14 @@
           <input id="indexedUploadInput" class="upload-input" type="file" accept=".txt,.csv,.tsv,.json,text/plain,text/csv" />
           <label class="upload-toggle" for="hideIndexedToggle">
             <input id="hideIndexedToggle" type="checkbox" />
-            Hide uploaded-indexed from Top Priority
+            Hide uploaded-indexed from Top Priority + Daily Top 5
           </label>
           <button id="downloadIndexedBtn" class="upload-btn" type="button" disabled>Download Normalized List</button>
           <button id="clearIndexedBtn" class="upload-btn" type="button" disabled>Clear</button>
         </div>
         <div id="indexedUploadStatus" class="upload-status muted">No local indexed file loaded.</div>
         <div class="upload-help muted">
-          Upload is local browser preview only. To apply in automation, replace <code>seo/data/already_indexed_urls.txt</code> with downloaded list.
+          Upload is local browser preview only. It affects Top Priority and Daily Top 5 in this UI. To apply in automation, replace <code>seo/data/already_indexed_urls.txt</code> with downloaded list.
         </div>
       </div>
     </section>
