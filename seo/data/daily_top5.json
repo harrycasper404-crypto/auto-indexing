@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-02-19T00:23:31.977Z",
+  "mode": "fallback",
+  "model": "deterministic",
+  "top5": [
+    {
+      "url": "https://trinityglobals.com/blog/cancel-flight-without-cancellation-fees-usa/",
+      "score": 304,
+      "lastmod": "2026-01-29T15:04:21+00:00",
+      "reason": "High score + freshness from cancellation/refund bucket (OK)",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fcancel-flight-without-cancellation-fees-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/basic-economy-change-rules-usa/",
+      "score": 302,
+      "lastmod": "2026-02-13T22:33:08+00:00",
+      "reason": "High score + freshness from change/modify/basic economy/fees bucket (OK)",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbasic-economy-change-rules-usa%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/los-angeles-to-new-york-flights/",
+      "score": 202,
+      "lastmod": "2026-02-04T22:56:36+00:00",
+      "reason": "High score + freshness from routes/destinations bucket (OK)",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Flos-angeles-to-new-york-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/toronto-to-montreal-flights/",
+      "score": 202,
+      "lastmod": "2026-02-11T22:29:24+00:00",
+      "reason": "High score + freshness from Canada bucket (OK)",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Ftoronto-to-montreal-flights%2F"
+    },
+    {
+      "url": "https://trinityglobals.com/blog/book-international-flights-from-usa/",
+      "score": 102,
+      "lastmod": "2026-02-18T22:32:30+00:00",
+      "reason": "High score + freshness from USA deals/cheap/general bucket (OK)",
+      "inspect": "https://search.google.com/search-console/inspect?resource_id=sc-domain%3Atrinityglobals.com&url=https%3A%2F%2Ftrinityglobals.com%2Fblog%2Fbook-international-flights-from-usa%2F"
+    }
+  ]
+}

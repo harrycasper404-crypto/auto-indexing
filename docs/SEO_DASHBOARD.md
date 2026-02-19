@@ -3,6 +3,7 @@
 ## What It Is
 - A static UI at `seo/index.html` that reads `seo/data/latest.json`.
 - It shows:
+  - daily top 5 URLs for manual indexing
   - summary counts
   - top priority URLs
   - OK URLs

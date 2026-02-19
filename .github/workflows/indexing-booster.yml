@@ -26,11 +26,16 @@ jobs:
       - name: Generate SEO dashboard JSON
         run: node scripts/generate-seo-json.js --sitemap https://trinityglobals.com/sitemap.xml --sitemap https://trinityglobals.com/blog/sitemap.xml/ --property sc-domain:trinityglobals.com
 
+      - name: Pick daily top 5 URLs
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node scripts/pick-daily-top5.js --property sc-domain:trinityglobals.com
+
       - name: Commit dashboard data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add seo/data/latest.json
+          git add seo/data/latest.json seo/data/daily_top5.json
           if git diff --cached --quiet; then
             echo "No data changes to commit."
             exit 0
@@ -53,3 +58,4 @@ jobs:
             urls_bad.txt
             inspect_links_priority_top50.txt
             urls_remove_candidates.txt
+            seo/data/daily_top5.json

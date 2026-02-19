@@ -230,6 +230,17 @@
       font-size: 0.88rem;
     }
 
+    .panel-link {
+      font-size: 0.82rem;
+      color: var(--accent);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .panel-link:hover {
+      text-decoration: underline;
+    }
+
     .table-wrap {
       overflow-x: auto;
     }
@@ -382,6 +393,17 @@
       </div>
     </section>
 
+    <section id="panelDailyTop5" class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Daily Top 5 (Manual Request Indexing)</h2>
+        <div>
+          <span id="countDailyTop5" class="panel-count"></span>
+          <a id="dailyTop5DebugLink" class="panel-link" href="data/daily_top5.json" target="_blank" rel="noopener noreferrer">daily_top5.json</a>
+        </div>
+      </div>
+      <div id="contentDailyTop5" class="table-wrap"></div>
+    </section>
+
     <section id="panelTop" class="panel">
       <div class="panel-header">
         <h2 class="panel-title">Top Priority URLs</h2>
@@ -436,6 +458,7 @@
   <script>
     const state = {
       data: null,
+      dailyTop5: null,
       activeTab: "top",
       query: "",
       uploadedIndexedUrls: [],
@@ -641,6 +664,45 @@
       const sitemapText = sitemaps.length > 0 ? sitemaps.join(", ") : (state.data && state.data.sitemap) || "N/A";
       document.getElementById("metaLine").textContent =
         `Generated: ${generatedAt} | Property: ${property} | Sitemaps: ${sitemapText}`;
+    }
+
+    function renderDailyTop5() {
+      const payload = state.dailyTop5 || {};
+      const rows = withFilter(asArray(payload.top5), (row) =>
+        [row.url, row.reason, row.score, row.lastmod].join(" "),
+      ).slice(0, 5);
+
+      const mode = payload.mode ? `mode: ${payload.mode}` : "mode: n/a";
+      document.getElementById("countDailyTop5").textContent = `${rows.length} rows (${mode})`;
+
+      if (rows.length === 0) {
+        document.getElementById("contentDailyTop5").innerHTML =
+          '<div class="empty">No Daily Top 5 data available yet.</div>';
+        return;
+      }
+
+      const body = rows
+        .map((row, index) => {
+          const url = row.url || "";
+          const inspect = row.inspect || "";
+          const reason = row.reason || "-";
+          return (
+            "<tr>" +
+            `<td>${index + 1}</td>` +
+            `<td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></td>` +
+            `<td>${escapeHtml(reason)}</td>` +
+            `<td>${escapeHtml(row.lastmod || "-")}</td>` +
+            `<td>${inspect ? `<a class="btn-inspect" href="${escapeHtml(inspect)}" target="_blank" rel="noopener noreferrer">Inspect in GSC</a>` : '<span class="muted">N/A</span>'}</td>` +
+            "</tr>"
+          );
+        })
+        .join("");
+
+      document.getElementById("contentDailyTop5").innerHTML =
+        "<table>" +
+        "<thead><tr><th>#</th><th>URL</th><th>Reason</th><th>Lastmod</th><th>Inspect</th></tr></thead>" +
+        `<tbody>${body}</tbody>` +
+        "</table>";
     }
 
     function renderTopTable() {
@@ -869,6 +931,7 @@
       if (!state.data) {
         return;
       }
+      renderDailyTop5();
       renderSummary();
       renderTopTable();
       renderOkTable();
@@ -887,15 +950,36 @@
 
     async function loadData() {
       try {
-        const response = await fetch(`data/latest.json?ts=${Date.now()}`, { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error(`Failed to load data (HTTP ${response.status})`);
+        const ts = Date.now();
+        const [latestRes, dailyRes] = await Promise.allSettled([
+          fetch(`data/latest.json?ts=${ts}`, { cache: "no-store" }),
+          fetch(`data/daily_top5.json?ts=${ts}`, { cache: "no-store" }),
+        ]);
+
+        if (latestRes.status !== "fulfilled" || !latestRes.value.ok) {
+          const status =
+            latestRes.status === "fulfilled"
+              ? `HTTP ${latestRes.value.status}`
+              : latestRes.reason?.message || "request failed";
+          throw new Error(`Failed to load latest.json (${status})`);
         }
-        state.data = await response.json();
+
+        state.data = await latestRes.value.json();
+
+        if (dailyRes.status === "fulfilled" && dailyRes.value.ok) {
+          state.dailyTop5 = await dailyRes.value.json();
+        } else {
+          state.dailyTop5 = {
+            generated_at: null,
+            mode: "missing",
+            top5: [],
+          };
+        }
+
         renderAll();
       } catch (error) {
         showError(
-          `Could not load seo/data/latest.json. ${error.message}. If opening as file://, run a local server (example: npx serve .) and open /seo/index.html.`,
+          `Could not load dashboard data. ${error.message}. If opening as file://, run a local server (example: npx serve .) and open /seo/index.html.`,
         );
       }
     }
