@@ -634,6 +634,29 @@
       return matches;
     }
 
+    function buildDailyIndexedExclusionKeys() {
+      const keys = new Set();
+
+      const workflowRows = asArray(state.data && state.data.skipped_already_indexed);
+      for (const row of workflowRows) {
+        const key = canonicalUrlKey(row.url);
+        if (key) {
+          keys.add(key);
+        }
+      }
+
+      for (const key of state.uploadedIndexedKeys) {
+        keys.add(key);
+      }
+
+      return keys;
+    }
+
+    function buildInspectLink(url) {
+      const property = (state.data && state.data.property) || "sc-domain:trinityglobals.com";
+      return `https://search.google.com/search-console/inspect?resource_id=${encodeURIComponent(property)}&url=${encodeURIComponent(url)}`;
+    }
+
     function renderSummary() {
       const counts = (state.data && state.data.counts) || {};
       const items = [
@@ -668,12 +691,83 @@
 
     function renderDailyTop5() {
       const payload = state.dailyTop5 || {};
-      const rows = withFilter(asArray(payload.top5), (row) =>
-        [row.url, row.reason, row.score, row.lastmod].join(" "),
+      const exclusionKeys = buildDailyIndexedExclusionKeys();
+      const usedKeys = new Set();
+      const selectedRows = [];
+      let indexedHidden = 0;
+      let replacements = 0;
+
+      const pushRowIfAllowed = (row, fallbackReason = "") => {
+        const url = String(row.url || "").trim();
+        if (!url) {
+          return false;
+        }
+
+        const key = canonicalUrlKey(url);
+        if (!key) {
+          return false;
+        }
+
+        if (exclusionKeys.has(key)) {
+          indexedHidden += 1;
+          return false;
+        }
+
+        if (usedKeys.has(key)) {
+          return false;
+        }
+
+        const reason = String(row.reason || "").trim() || fallbackReason || "-";
+        const inspect = String(row.inspect || "").trim() || buildInspectLink(url);
+
+        usedKeys.add(key);
+        selectedRows.push({
+          url,
+          reason,
+          lastmod: String(row.lastmod || "").trim(),
+          inspect,
+        });
+
+        return true;
+      };
+
+      const dailyRows = asArray(payload.top5);
+      for (const row of dailyRows) {
+        if (selectedRows.length >= 5) {
+          break;
+        }
+        pushRowIfAllowed(row);
+      }
+
+      if (selectedRows.length < 5) {
+        const fallbackRows = asArray(state.data && state.data.top_priority);
+        for (const row of fallbackRows) {
+          if (selectedRows.length >= 5) {
+            break;
+          }
+          const added = pushRowIfAllowed(row, "Auto replacement: non-indexed priority URL");
+          if (added) {
+            replacements += 1;
+          }
+        }
+      }
+
+      const rows = withFilter(selectedRows, (row) =>
+        [row.url, row.reason, row.lastmod].join(" "),
       ).slice(0, 5);
 
       const mode = payload.mode ? `mode: ${payload.mode}` : "mode: n/a";
-      document.getElementById("countDailyTop5").textContent = `${rows.length} rows (${mode})`;
+      const extra = [];
+      if (indexedHidden > 0) {
+        extra.push(`${indexedHidden} indexed hidden`);
+      }
+      if (replacements > 0) {
+        extra.push(`${replacements} replacements`);
+      }
+      document.getElementById("countDailyTop5").textContent =
+        extra.length > 0
+          ? `${rows.length} rows (${mode}, ${extra.join(", ")})`
+          : `${rows.length} rows (${mode})`;
 
       if (rows.length === 0) {
         document.getElementById("contentDailyTop5").innerHTML =
