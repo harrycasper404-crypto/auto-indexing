@@ -25,6 +25,14 @@
 3. One URL per line is best. CSV export also works (script extracts URLs from each line).
 4. Workflow/script will skip these URLs from indexing queue automatically.
 
+## UI Upload Option (Quick Local Preview)
+- Dashboard UI now has `Already Indexed Upload` control.
+- You can upload TXT/CSV directly in browser to preview:
+  - which top-priority URLs are already indexed
+  - local skip impact with `Hide uploaded-indexed from Top Priority`
+- You can download normalized list from UI and save it into `seo/data/already_indexed_urls.txt`.
+- Note: UI upload is local/browser-only preview. Repo/workflow changes happen only after file is saved in repo.
+
 ## View The Dashboard
 1. Open `seo/index.html`.
 2. The page loads data from `seo/data/latest.json`.

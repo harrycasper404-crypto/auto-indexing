@@ -126,6 +126,67 @@
       cursor: pointer;
     }
 
+    .upload-box {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #f9fbff;
+      padding: 12px;
+    }
+
+    .upload-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .upload-label {
+      font-size: 0.85rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .upload-input {
+      max-width: 320px;
+    }
+
+    .upload-toggle {
+      font-size: 0.84rem;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .upload-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .upload-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .upload-status {
+      margin-top: 8px;
+      font-size: 0.83rem;
+      line-height: 1.4;
+    }
+
+    .upload-help {
+      margin-top: 4px;
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+
     .tab-btn.active {
       background: var(--accent-soft);
       border-color: #c4d5ff;
@@ -222,6 +283,22 @@
       white-space: nowrap;
     }
 
+    .chip-indexed {
+      display: inline-block;
+      border: 1px solid #ffd59a;
+      background: #fff8eb;
+      color: var(--warn);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .row-indexed td {
+      background: #fffdf6;
+    }
+
     .status-ok {
       color: var(--ok);
       font-weight: 600;
@@ -286,6 +363,23 @@
           <button class="tab-btn" data-tab="remove" type="button">Remove Candidates</button>
         </div>
       </div>
+
+      <div class="upload-box">
+        <div class="upload-row">
+          <label class="upload-label" for="indexedUploadInput">Already Indexed Upload</label>
+          <input id="indexedUploadInput" class="upload-input" type="file" accept=".txt,.csv,.tsv,.json,text/plain,text/csv" />
+          <label class="upload-toggle" for="hideIndexedToggle">
+            <input id="hideIndexedToggle" type="checkbox" />
+            Hide uploaded-indexed from Top Priority
+          </label>
+          <button id="downloadIndexedBtn" class="upload-btn" type="button" disabled>Download Normalized List</button>
+          <button id="clearIndexedBtn" class="upload-btn" type="button" disabled>Clear</button>
+        </div>
+        <div id="indexedUploadStatus" class="upload-status muted">No local indexed file loaded.</div>
+        <div class="upload-help muted">
+          Upload is local browser preview only. To apply in automation, replace <code>seo/data/already_indexed_urls.txt</code> with downloaded list.
+        </div>
+      </div>
     </section>
 
     <section id="panelTop" class="panel">
@@ -344,6 +438,9 @@
       data: null,
       activeTab: "top",
       query: "",
+      uploadedIndexedUrls: [],
+      uploadedIndexedKeys: new Set(),
+      hideUploadedIndexed: false,
     };
 
     const tabElements = Array.from(document.querySelectorAll(".tab-btn"));
@@ -355,6 +452,13 @@
       indexed: document.getElementById("panelIndexed"),
       remove: document.getElementById("panelRemove"),
     };
+
+    const STORAGE_INDEXED_UPLOAD = "seo_dashboard_uploaded_indexed_urls_v1";
+    const indexedUploadInput = document.getElementById("indexedUploadInput");
+    const hideIndexedToggle = document.getElementById("hideIndexedToggle");
+    const downloadIndexedBtn = document.getElementById("downloadIndexedBtn");
+    const clearIndexedBtn = document.getElementById("clearIndexedBtn");
+    const indexedUploadStatus = document.getElementById("indexedUploadStatus");
 
     function escapeHtml(input) {
       return String(input)
@@ -381,6 +485,132 @@
       return Array.isArray(value) ? value : [];
     }
 
+    function canonicalUrlKey(rawUrl) {
+      try {
+        const url = new URL(String(rawUrl).trim());
+        url.hash = "";
+        url.search = "";
+        url.hostname = url.hostname.toLowerCase();
+        if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+          url.pathname = url.pathname.slice(0, -1);
+        }
+        return `${url.origin}${url.pathname}`;
+      } catch {
+        return "";
+      }
+    }
+
+    function extractUrlsFromText(text) {
+      const set = new Set();
+      String(text)
+        .split(/\r?\n/)
+        .forEach((line) => {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) {
+            return;
+          }
+          const matches = trimmed.match(/https?:\/\/[^\s,"']+/gi);
+          if (!matches) {
+            return;
+          }
+          matches.forEach((item) => {
+            const key = canonicalUrlKey(item);
+            if (key) {
+              set.add(key);
+            }
+          });
+        });
+      return Array.from(set).sort();
+    }
+
+    function isUploadedIndexed(url) {
+      const key = canonicalUrlKey(url);
+      return key && state.uploadedIndexedKeys.has(key);
+    }
+
+    function persistUploadedIndexed() {
+      try {
+        if (state.uploadedIndexedUrls.length === 0) {
+          localStorage.removeItem(STORAGE_INDEXED_UPLOAD);
+          return;
+        }
+        localStorage.setItem(STORAGE_INDEXED_UPLOAD, JSON.stringify(state.uploadedIndexedUrls));
+      } catch {
+        // no-op if storage not available
+      }
+    }
+
+    function hydrateUploadedIndexedFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_INDEXED_UPLOAD);
+        if (!raw) {
+          return;
+        }
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return;
+        }
+        setUploadedIndexedUrls(parsed, false);
+      } catch {
+        // ignore parse/storage errors
+      }
+    }
+
+    function setUploadedIndexedUrls(urlList, shouldPersist = true) {
+      const normalized = Array.from(new Set((urlList || []).map((x) => canonicalUrlKey(x)).filter(Boolean))).sort();
+      state.uploadedIndexedUrls = normalized;
+      state.uploadedIndexedKeys = new Set(normalized);
+      if (shouldPersist) {
+        persistUploadedIndexed();
+      }
+      updateIndexedUploadUi();
+    }
+
+    function updateIndexedUploadUi() {
+      const count = state.uploadedIndexedUrls.length;
+      indexedUploadStatus.textContent =
+        count > 0
+          ? `${count} indexed URLs loaded in local preview.`
+          : "No local indexed file loaded.";
+      downloadIndexedBtn.disabled = count === 0;
+      clearIndexedBtn.disabled = count === 0;
+    }
+
+    function downloadUploadedIndexedList() {
+      if (state.uploadedIndexedUrls.length === 0) {
+        return;
+      }
+      const content = `${state.uploadedIndexedUrls.join("\n")}\n`;
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "already_indexed_urls.txt";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function buildLocalIndexedMatches(existingKeys) {
+      const sourceRows = asArray(state.data && state.data.top_priority);
+      const matches = [];
+      for (const row of sourceRows) {
+        const url = row.url || "";
+        const key = canonicalUrlKey(url);
+        if (!key || !state.uploadedIndexedKeys.has(key) || existingKeys.has(key)) {
+          continue;
+        }
+        existingKeys.add(key);
+        matches.push({
+          url,
+          lastmod: row.lastmod || "",
+          reason: "Matched uploaded indexed file (local preview)",
+          source: "local-upload",
+        });
+      }
+      return matches;
+    }
+
     function renderSummary() {
       const counts = (state.data && state.data.counts) || {};
       const items = [
@@ -388,6 +618,7 @@
         { label: "Kept URLs", value: counts.kept_urls || 0 },
         { label: "Skipped Duplicates", value: counts.skipped_duplicates || 0 },
         { label: "Skipped Indexed", value: counts.skipped_already_indexed || 0 },
+        { label: "Uploaded Indexed", value: state.uploadedIndexedUrls.length || 0 },
         { label: "OK", value: counts.ok_count || 0 },
         { label: "Bad", value: counts.bad_count || 0 },
         { label: "Remove Candidates", value: counts.remove_candidates || 0 },
@@ -413,10 +644,20 @@
     }
 
     function renderTopTable() {
-      const rows = withFilter(asArray(state.data && state.data.top_priority), (row) =>
+      const originalRows = asArray(state.data && state.data.top_priority);
+      const hiddenByUpload = state.hideUploadedIndexed
+        ? originalRows.filter((row) => isUploadedIndexed(row.url)).length
+        : 0;
+      const visibleRows = state.hideUploadedIndexed
+        ? originalRows.filter((row) => !isUploadedIndexed(row.url))
+        : originalRows;
+      const rows = withFilter(visibleRows, (row) =>
         [row.url, row.score, row.lastmod, row.tier].join(" "),
       );
-      document.getElementById("countTop").textContent = `${rows.length} rows`;
+      document.getElementById("countTop").textContent =
+        hiddenByUpload > 0
+          ? `${rows.length} rows (${hiddenByUpload} hidden by uploaded indexed)`
+          : `${rows.length} rows`;
 
       if (rows.length === 0) {
         document.getElementById("contentTop").innerHTML = '<div class="empty">No rows found.</div>';
@@ -427,11 +668,13 @@
         .map((row) => {
           const url = row.url || "";
           const inspect = row.inspect || "";
+          const indexedFlag = isUploadedIndexed(url);
           return (
-            "<tr>" +
+            `<tr class="${indexedFlag ? "row-indexed" : ""}">` +
             `<td>${escapeHtml(row.score || 0)}</td>` +
             `<td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></td>` +
             `<td>${escapeHtml(row.lastmod || "-")}</td>` +
+            `<td>${indexedFlag ? '<span class="chip-indexed">Indexed Upload</span>' : '<span class="muted">-</span>'}</td>` +
             `<td>${inspect ? `<a class="btn-inspect" href="${escapeHtml(inspect)}" target="_blank" rel="noopener noreferrer">Inspect in GSC</a>` : '<span class="muted">N/A</span>'}</td>` +
             "</tr>"
           );
@@ -440,7 +683,7 @@
 
       document.getElementById("contentTop").innerHTML =
         "<table>" +
-        "<thead><tr><th>Score</th><th>URL</th><th>Lastmod</th><th>Inspect</th></tr></thead>" +
+        "<thead><tr><th>Score</th><th>URL</th><th>Lastmod</th><th>Uploaded Indexed</th><th>Inspect</th></tr></thead>" +
         `<tbody>${body}</tbody>` +
         "</table>";
     }
@@ -541,8 +784,17 @@
     }
 
     function renderIndexedTable() {
-      const rows = withFilter(asArray(state.data && state.data.skipped_already_indexed), (row) =>
-        [row.url, row.lastmod, row.reason].join(" "),
+      const workflowRows = asArray(state.data && state.data.skipped_already_indexed).map((row) => ({
+        ...row,
+        source: row.source || "workflow",
+      }));
+      const existingKeys = new Set(
+        workflowRows.map((row) => canonicalUrlKey(row.url)).filter(Boolean),
+      );
+      const localRows = buildLocalIndexedMatches(existingKeys);
+      const mergedRows = [...workflowRows, ...localRows];
+      const rows = withFilter(mergedRows, (row) =>
+        [row.url, row.lastmod, row.reason, row.source].join(" "),
       );
       document.getElementById("countIndexed").textContent = `${rows.length} rows`;
 
@@ -559,6 +811,7 @@
             `<td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></td>` +
             `<td>${escapeHtml(row.lastmod || "-")}</td>` +
             `<td>${escapeHtml(row.reason || "-")}</td>` +
+            `<td>${escapeHtml(row.source || "-")}</td>` +
             "</tr>"
           );
         })
@@ -566,7 +819,7 @@
 
       document.getElementById("contentIndexed").innerHTML =
         "<table>" +
-        "<thead><tr><th>URL</th><th>Lastmod</th><th>Reason</th></tr></thead>" +
+        "<thead><tr><th>URL</th><th>Lastmod</th><th>Reason</th><th>Source</th></tr></thead>" +
         `<tbody>${body}</tbody>` +
         "</table>";
     }
@@ -659,6 +912,38 @@
       renderAll();
     });
 
+    indexedUploadInput.addEventListener("change", async (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) {
+        return;
+      }
+      try {
+        const text = await file.text();
+        const urls = extractUrlsFromText(text);
+        setUploadedIndexedUrls(urls, true);
+        renderAll();
+      } catch (error) {
+        showError(`Failed to parse uploaded indexed file. ${error.message}`);
+      }
+    });
+
+    clearIndexedBtn.addEventListener("click", () => {
+      setUploadedIndexedUrls([], true);
+      indexedUploadInput.value = "";
+      hideIndexedToggle.checked = false;
+      state.hideUploadedIndexed = false;
+      renderAll();
+    });
+
+    downloadIndexedBtn.addEventListener("click", downloadUploadedIndexedList);
+
+    hideIndexedToggle.addEventListener("change", (event) => {
+      state.hideUploadedIndexed = !!event.target.checked;
+      renderAll();
+    });
+
+    hydrateUploadedIndexedFromStorage();
+    updateIndexedUploadUi();
     loadData();
   </script>
 </body>
